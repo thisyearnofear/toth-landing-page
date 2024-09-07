@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 // API route handler for fetching nominations
 export async function GET() {
   const pinataJwt = process.env.PINATA_JWT; // Access the JWT securely from the environment variables
-  const pinataGateway = process.env.PINATA_GATEWAY; // Optional, if you're using the gateway
 
   try {
     const response = await fetch(

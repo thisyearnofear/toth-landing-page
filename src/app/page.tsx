@@ -4,9 +4,9 @@ import Image from "next/image";
 import HyperText from "@/components/magicui/hyper-text";
 import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
 import { Tree, Folder, File } from "@/components/magicui/file-tree";
-import { AnimatedList } from "@/components/magicui/animated-list";
 import Marquee from "@/components/magicui/marquee";
 import SparklesText from "@/components/magicui/sparkles-text";
+import AnimatedCircularProgressBar from "@/components/magicui/animated-circular-progress-bar";
 import {
   PersonIcon,
   GroupIcon,
@@ -50,14 +50,19 @@ const generateUserUrl = (username: string) => {
 export default function Home() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [combinedVotes, setCombinedVotes] = useState<CombinedVote[]>([]);
+  const [nominationsProgress, setNominationsProgress] = useState(0);
+  const [votesProgress, setVotesProgress] = useState(0);
 
   useEffect(() => {
     // sourcery skip: avoid-function-declarations-in-blocks
     async function fetchData() {
       try {
         // Fetch nominations
+        setNominationsProgress(10);
         const nominationsResponse = await fetch("/api/fetchNominations");
+        setNominationsProgress(30);
         const nominationsData = await nominationsResponse.json();
+        setNominationsProgress(50);
 
         const allNominations = nominationsData
           .flatMap((round: any) =>
@@ -102,14 +107,19 @@ export default function Home() {
           })
         );
 
+        setNominationsProgress(80);
         const validNominations = formattedNominations.filter(
           (nom): nom is Nomination => nom !== null
         );
         setNominations(validNominations);
+        setNominationsProgress(100);
 
         // Fetch votes
+        setVotesProgress(10);
         const votesResponse = await fetch("/api/fetchVotes");
+        setVotesProgress(30);
         const votesData = await votesResponse.json();
+        setVotesProgress(50);
 
         const allVotes = votesData
           .flatMap((round: any) =>
@@ -158,6 +168,7 @@ export default function Home() {
         );
 
         // Combine votes with nominations
+        setVotesProgress(80);
         const combined = validVotes
           .map((vote) => {
             const nomination = validNominations.find(
@@ -168,8 +179,11 @@ export default function Home() {
           .filter((combined) => combined.nomination !== undefined);
 
         setCombinedVotes(combined);
+        setVotesProgress(100);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setNominationsProgress(100);
+        setVotesProgress(100);
       }
     }
 
@@ -390,11 +404,24 @@ export default function Home() {
           href="#"
           cta="View All Nominations"
         >
-          <Marquee className="h-40" vertical pauseOnHover speed={10}>
-            {nominations.map((nomination, index) => (
-              <NominationNotification key={index} {...nomination} />
-            ))}
-          </Marquee>
+          {nominationsProgress < 100 ? (
+            <div className="flex justify-center items-center h-40">
+              <AnimatedCircularProgressBar
+                max={100}
+                value={nominationsProgress}
+                min={0}
+                gaugePrimaryColor="#8B5CF6"
+                gaugeSecondaryColor="#C4B5FD"
+                className="scale-75"
+              />
+            </div>
+          ) : (
+            <Marquee className="h-40" vertical pauseOnHover speed={10}>
+              {nominations.map((nomination, index) => (
+                <NominationNotification key={index} {...nomination} />
+              ))}
+            </Marquee>
+          )}
         </BentoCard>
 
         <BentoCard
@@ -404,15 +431,28 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600" />
           }
           Icon={GroupIcon}
-          description="“The ballot is stronger than the bullet” AL"
+          description="The ballot is stronger than the bullet"
           href="https://toth-bec749001fd2.herokuapp.com/allVotesForRounds"
           cta="View All Votes"
         >
-          <Marquee className="h-40" vertical pauseOnHover speed={10} reverse>
-            {combinedVotes.map((combinedVote, index) => (
-              <VoteNotification key={index} {...combinedVote} />
-            ))}
-          </Marquee>
+          {votesProgress < 100 ? (
+            <div className="flex justify-center items-center h-40">
+              <AnimatedCircularProgressBar
+                max={100}
+                value={votesProgress}
+                min={0}
+                gaugePrimaryColor="#3B82F6"
+                gaugeSecondaryColor="#93C5FD"
+                className="scale-75"
+              />
+            </div>
+          ) : (
+            <Marquee className="h-40" vertical pauseOnHover speed={10} reverse>
+              {combinedVotes.map((combinedVote, index) => (
+                <VoteNotification key={index} {...combinedVote} />
+              ))}
+            </Marquee>
+          )}
         </BentoCard>
         <BentoCard
           name="Autosubscribers"
@@ -453,7 +493,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600" />
           }
           Icon={StarIcon}
-          description="$Degen TOTH recipients"
+          description="Recent $degen TOTH recipients"
           href="#"
           cta="View All Winners"
         >
