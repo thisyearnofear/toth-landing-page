@@ -55,7 +55,6 @@ export default function HyperText({
               : alphabets[getRandomInt(26)]
           )
         );
-        // sourcery skip: assignment-operator
         interations.current = interations.current + 0.1;
       } else {
         setTrigger(false);
