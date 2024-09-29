@@ -97,10 +97,8 @@ export const useDataFetching = () => {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
 
-        const recentVotes = allVotes.slice(0, 20);
-
         const formattedVotes = await Promise.all(
-          recentVotes.map(async (vote: any) => {
+          allVotes.map(async (vote: any) => {
             const userResponse = await fetch(
               `/api/fetchUserInfo?fid=${vote.fid}`
             );

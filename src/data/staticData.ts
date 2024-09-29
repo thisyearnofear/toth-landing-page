@@ -92,4 +92,82 @@ export const winners: Winner[] = [
     icon: "🏡", // House, representing the Kismet Casa residency
     color: "#8B0000", // Dark red for collaboration and creativity
   },
+  {
+    name: "@toadyhawk.eth",
+    description: '"Interesting" P series on @paragraph',
+    icon: "📝", // Notepad, representing writing and content creation
+    color: "#FF6347", // Tomato red for engaging and thought-provoking content
+  },
+  {
+    name: "@rskagy.eth",
+    description: "Bringing creators onchain via education",
+    icon: "📚", // Book, representing education and learning
+    color: "#4682B4", // Steel blue for knowledge and innovation
+  },
+  {
+    name: "@calvindumb",
+    description: "3 months streak on /degen-art",
+    icon: "🔥", // Fire, representing a streak and persistence
+    color: "#FF4500", // Orange-red for energy and creativity
+  },
+  {
+    name: "@reylarsdam",
+    description: "Phenomenal art",
+    icon: "🎨", // Palette, representing artistic talent
+    color: "#8A2BE2", // Blue-violet for artistic creativity
+  },
+  {
+    name: "@christin",
+    description: 'Creating a typography of "interesting" content',
+    icon: "✍️", // Writing hand, representing creative content
+    color: "#2E8B57", // Sea green for elegant and thoughtful work
+  },
+  {
+    name: "@nicholas",
+    description: "Hyping us with daily /motivation",
+    icon: "⚡", // Lightning bolt, representing energy and motivation
+    color: "#FFD700", // Gold for positivity and inspiration
+  },
+  {
+    name: "@vrypan.eth",
+    description: "Miller–Urey experiment analogy to Farcaster",
+    icon: "🔬", // Microscope, representing science and experimentation
+    color: "#4682B4", // Steel blue for scientific insight
+  },
+  {
+    name: "@ahn.eth",
+    description: "Some stunning Strava art",
+    icon: "🚴", // Bicycle, representing Strava and art via cycling routes
+    color: "#FF6347", // Tomato red for the passion behind art
+  },
+  {
+    name: "@aviationdoctor.eth",
+    description: "Phenomenal synopses of /science /engineering etc. goings on",
+    icon: "🛠️", // Hammer and wrench, representing engineering and science
+    color: "#6495ED", // Cornflower blue for technical insights
+  },
+  {
+    name: "@arjantupan",
+    description: "Consistently nurturing the poetry scene",
+    icon: "📜", // Scroll, representing poetry and written art
+    color: "#FF69B4", // Hot pink for creative expression
+  },
+  {
+    name: "@nounishprof",
+    description: "/gmfarcaster dopeness alongside @adrienne",
+    icon: "🌄", // Sunrise, representing morning vibes and the GM spirit
+    color: "#FFD700", // Gold for warm, uplifting energy
+  },
+  {
+    name: "@darrylyeo",
+    description: "/frontend design vibing",
+    icon: "🎨", // Palette, representing design and creativity
+    color: "#00BFFF", // Light blue for design and aesthetic innovation
+  },
+  {
+    name: "@grit",
+    description: "Building @rhizome",
+    icon: "🌱", // Seedling, representing growth and development
+    color: "#32CD32", // Lime green for growth and innovation
+  },
 ];

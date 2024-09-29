@@ -19,7 +19,7 @@ const AllWinnersCard = ({ winners }) => {
       href="#"
       cta="View All Winners"
     >
-      <div className="relative h-40 overflow-hidden">
+      <div className="relative h-80 overflow-hidden">
         <Marquee pauseOnHover className="[--duration:40s]">
           {winners.slice(0, halfLength).map((winner, index) => (
             <WinnerListCard key={index} {...winner} />
