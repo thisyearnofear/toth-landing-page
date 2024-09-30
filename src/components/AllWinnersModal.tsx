@@ -1,7 +1,3 @@
-// src/components/AllVotesModal.tsx
-
-"use client";
-
 import React from "react";
 import {
   Dialog,
@@ -12,40 +8,40 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import VoteNotification from "./VoteNotification";
-import { CombinedVote } from "../types";
+import { Winner } from "../types";
+import WinnerListCard from "./WinnerListCard";
 
-interface AllVotesModalProps {
+interface AllWinnersModalProps {
   isOpen: boolean;
   onClose: () => void;
-  votes: CombinedVote[];
+  winners: Winner[];
   onDownload: () => void;
 }
 
-const AllVotesModal: React.FC<AllVotesModalProps> = ({
+const AllWinnersModal: React.FC<AllWinnersModalProps> = ({
   isOpen,
   onClose,
-  votes,
+  winners,
   onDownload,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>All Votes</DialogTitle>
+          <DialogTitle>All Winners</DialogTitle>
           <DialogDescription>
-            View all votes and download the list of voters.
+            View all winners and download the list of winners.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[300px] w-full pr-4">
-          {votes.map((vote, index) => (
-            <VoteNotification key={index} {...vote} />
+          {winners.map((winner, index) => (
+            <WinnerListCard key={index} {...winner} />
           ))}
         </ScrollArea>
-        <Button onClick={onDownload}>Download Voters List</Button>
+        <Button onClick={onDownload}>Download Winners List</Button>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AllVotesModal;
+export default AllWinnersModal;

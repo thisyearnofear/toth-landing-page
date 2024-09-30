@@ -1,3 +1,5 @@
+// src/components/VoteNotification.tsx
+
 import React from "react";
 import { CombinedVote } from "../types";
 import { generateUserUrl } from "../utils/userUtils";

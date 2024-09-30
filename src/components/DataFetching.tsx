@@ -1,3 +1,5 @@
+// src/components/DataFetching.tsx
+
 "use client";
 
 import React from "react";
@@ -5,17 +7,22 @@ import { useDataFetching } from "../hooks/useDataFetching";
 import { BentoGrid } from "@/components/magicui/bento-grid";
 import NominationsCard from "@/components/NominationsCard";
 import VotesCard from "@/components/VotesCard";
-import AutosubscribersCard from "@/components/AutosubscribersCard";
 import AllWinnersCard from "@/components/AllWinnersCard";
-import { autosubscribers, winners } from "@/data/staticData";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import AutosubscribersCard from "@/components/AutosubscribersCard";
+import { Button } from "@/components/ui/button";
 
 const DataFetching = () => {
   const {
     nominations,
     combinedVotes,
+    autosubscribers,
     nominationsProgress,
     votesProgress,
+    autosubscribersProgress,
     error,
+    isLoading,
+    refreshData,
   } = useDataFetching();
 
   if (error) {
@@ -23,15 +30,26 @@ const DataFetching = () => {
   }
 
   return (
-    <BentoGrid className="max-w-6xl mx-auto mb-12">
-      <NominationsCard
-        nominations={nominations}
-        progress={nominationsProgress}
-      />
-      <VotesCard votes={combinedVotes} progress={votesProgress} />
-      <AutosubscribersCard subscribers={autosubscribers} />
-      <AllWinnersCard winners={winners} />
-    </BentoGrid>
+    <ErrorBoundary
+      fallback={<div>Something went wrong. Please try again later.</div>}
+    >
+      <div className="max-w-6xl mx-auto mb-4"></div>
+      <BentoGrid className="max-w-6xl mx-auto mb-12">
+        <NominationsCard
+          nominations={nominations}
+          progress={nominationsProgress}
+        />
+        <VotesCard votes={combinedVotes} progress={votesProgress} />
+        <AutosubscribersCard
+          subscribers={autosubscribers}
+          progress={autosubscribersProgress}
+        />
+        <AllWinnersCard />
+      </BentoGrid>
+      <Button onClick={refreshData} disabled={isLoading}>
+        {isLoading ? "Refreshing..." : "Refresh Data"}
+      </Button>
+    </ErrorBoundary>
   );
 };
 

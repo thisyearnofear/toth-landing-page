@@ -1,6 +1,4 @@
-// src/components/AllVotesModal.tsx
-
-"use client";
+// src/components/AllNominationsModal.tsx
 
 import React from "react";
 import {
@@ -12,40 +10,40 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import VoteNotification from "./VoteNotification";
-import { CombinedVote } from "../types";
+import NominationNotification from "./NominationNotification";
+import { Nomination } from "../types";
 
-interface AllVotesModalProps {
+interface AllNominationsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  votes: CombinedVote[];
+  nominations: Nomination[];
   onDownload: () => void;
 }
 
-const AllVotesModal: React.FC<AllVotesModalProps> = ({
+const AllNominationsModal: React.FC<AllNominationsModalProps> = ({
   isOpen,
   onClose,
-  votes,
+  nominations,
   onDownload,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>All Votes</DialogTitle>
+          <DialogTitle>All Nominations</DialogTitle>
           <DialogDescription>
-            View all votes and download the list of voters.
+            View all nominations and download the list of nominees.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[300px] w-full pr-4">
-          {votes.map((vote, index) => (
-            <VoteNotification key={index} {...vote} />
+          {nominations.map((nomination, index) => (
+            <NominationNotification key={index} {...nomination} />
           ))}
         </ScrollArea>
-        <Button onClick={onDownload}>Download Voters List</Button>
+        <Button onClick={onDownload}>Download Nominees List</Button>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AllVotesModal;
+export default AllNominationsModal;

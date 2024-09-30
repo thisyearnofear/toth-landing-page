@@ -1,11 +1,38 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { BentoCard } from "@/components/magicui/bento-grid";
 import { PersonIcon } from "@radix-ui/react-icons";
 import AnimatedCircularProgressBar from "@/components/magicui/animated-circular-progress-bar";
 import Marquee from "@/components/magicui/marquee";
 import NominationNotification from "@/components/NominationNotification";
+import AllNominationsModal from "@/components/AllNominationsModal";
+import { Nomination } from "../types";
 
-const NominationsCard = ({ nominations, progress }) => {
+const NominationsCard = ({
+  nominations,
+  progress,
+}: {
+  nominations: Nomination[];
+  progress: number;
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleDownload = () => {
+    const nomineesList = Array.from(
+      new Set(nominations.map((n) => n.nominee))
+    ).join("\n");
+    const blob = new Blob([nomineesList], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nominees_list.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <BentoCard
       name="Nominations"
@@ -17,6 +44,7 @@ const NominationsCard = ({ nominations, progress }) => {
       description="Pool Tips, Fund Awesomeness"
       href="#"
       cta="View All Nominations"
+      onClick={() => setIsModalOpen(true)}
     >
       {progress < 100 ? (
         <div className="flex justify-center items-center h-40">
@@ -36,6 +64,12 @@ const NominationsCard = ({ nominations, progress }) => {
           ))}
         </Marquee>
       )}
+      <AllNominationsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        nominations={nominations}
+        onDownload={handleDownload}
+      />
     </BentoCard>
   );
 };

@@ -1,3 +1,5 @@
+// src/components/VotesCard.tsx
+
 "use client";
 
 import React, { useState } from "react";
@@ -16,6 +18,7 @@ const VotesCard = ({
   votes: CombinedVote[];
   progress: number;
 }) => {
+  console.log("VotesCard received votes:", votes);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDownload = () => {
@@ -57,12 +60,16 @@ const VotesCard = ({
             className="scale-75"
           />
         </div>
-      ) : (
+      ) : votes.length > 0 ? (
         <Marquee className="h-40" vertical pauseOnHover speed={10} reverse>
-          {votes.map((vote, index) => (
-            <VoteNotification key={index} {...vote} />
+          {votes.map((combinedVote, index) => (
+            <VoteNotification key={index} {...combinedVote} />
           ))}
         </Marquee>
+      ) : (
+        <div className="flex justify-center items-center h-40 text-white">
+          No votes available.
+        </div>
       )}
       <AllVotesModal
         isOpen={isModalOpen}

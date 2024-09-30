@@ -67,7 +67,8 @@ const BentoCard = ({
 
     <div
       className={cn(
-        "absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+        "absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
+        "z-10" // Ensure this is higher than WinnerListCard if necessary
       )}
     >
       <Button variant="ghost" asChild size="sm" className="pointer-events-auto">

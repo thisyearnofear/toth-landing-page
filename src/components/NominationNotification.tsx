@@ -1,3 +1,5 @@
+// src/components/NominationNotification.tsx
+
 import React from "react";
 import { Nomination } from "../types";
 import { generateUserUrl } from "../utils/userUtils";
