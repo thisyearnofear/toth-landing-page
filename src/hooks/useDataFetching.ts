@@ -43,7 +43,7 @@ export const useDataFetching = () => {
       setIsLoading(true);
       try {
         // Fetch nominations
-        let cachedNominations = getCachedNominations();
+        const cachedNominations = getCachedNominations();
         if (!cachedNominations || forceRefresh) {
           setNominationsProgress(10);
           const nominationsResponse = await fetch("/api/fetchNominations");
@@ -111,7 +111,7 @@ export const useDataFetching = () => {
         setNominationsProgress(100);
 
         // Fetch votes
-        let cachedVotes = getCachedVotes();
+        const cachedVotes = getCachedVotes();
         console.log("Cached votes:", cachedVotes);
         if (!cachedVotes || forceRefresh) {
           setVotesProgress(10);
@@ -185,7 +185,7 @@ export const useDataFetching = () => {
         setCombinedVotes(combined);
 
         // Fetch autosubscribers
-        let cachedAutosubscribers = getCachedAutosubscribers();
+        const cachedAutosubscribers = getCachedAutosubscribers();
         if (!cachedAutosubscribers || forceRefresh) {
           setAutosubscribersProgress(10);
           const autosubscribersResponse = await fetch("/api/fetchWinners");
