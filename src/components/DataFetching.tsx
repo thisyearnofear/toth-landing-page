@@ -1,7 +1,3 @@
-// src/components/DataFetching.tsx
-
-"use client";
-
 import React from "react";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { BentoGrid } from "@/components/magicui/bento-grid";
@@ -12,7 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import AutosubscribersCard from "@/components/AutosubscribersCard";
 import { Button } from "@/components/ui/button";
 
-const DataFetching = () => {
+const DataFetching: React.FC = () => {
   const {
     nominations,
     combinedVotes,
@@ -23,12 +19,16 @@ const DataFetching = () => {
     error,
     isLoading,
     refreshData,
-    invalidateAllCache,
   } = useDataFetching();
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
+
+  const handleRefreshClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    refreshData();
+  };
 
   return (
     <ErrorBoundary
@@ -47,14 +47,9 @@ const DataFetching = () => {
         />
         <AllWinnersCard />
       </BentoGrid>
-      <div className="flex space-x-4">
-        <Button onClick={() => refreshData()} disabled={isLoading}>
-          {isLoading ? "Refreshing..." : "Refresh All Data"}
-        </Button>
-        <Button onClick={invalidateAllCache} disabled={isLoading}>
-          Clear Cache
-        </Button>
-      </div>
+      <Button onClick={handleRefreshClick} disabled={isLoading}>
+        {isLoading ? "Refreshing..." : "Refresh Data"}
+      </Button>
     </ErrorBoundary>
   );
 };

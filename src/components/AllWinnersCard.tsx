@@ -8,6 +8,7 @@ import WinnerListCard from "@/components/WinnerListCard";
 import AllWinnersModal from "./AllWinnersModal";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AllWinnersCard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,7 +35,7 @@ const AllWinnersCard = () => {
   return (
     <BentoCard
       name="Winners"
-      className="col-span-2 relative"
+      className="col-span-2 relative flex flex-col"
       background={
         <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600" />
       }
@@ -44,22 +45,36 @@ const AllWinnersCard = () => {
       cta="View All Winners"
       onClick={() => setIsModalOpen(true)}
     >
-      {isLoading || winnersProgress < 100 ? (
-        <div>Loading...</div>
-      ) : error ? (
-        <div>Error: {error}</div>
-      ) : winners.length === 0 ? (
-        <div>No winners available</div>
-      ) : (
-        <div className="relative h-80 overflow-hidden">
-          <Marquee pauseOnHover className="[--duration:450s]">
-            {winners.map((winner, index) => (
-              <WinnerListCard key={index} {...winner} />
-            ))}
-          </Marquee>
-        </div>
-      )}
-      <Button onClick={handleRefresh} disabled={isLoading} className="mt-4">
+      <div className="flex-grow overflow-hidden">
+        {isLoading || winnersProgress < 100 ? (
+          <div className="h-full flex items-center justify-center">
+            Loading...
+          </div>
+        ) : error ? (
+          <div className="h-full flex items-center justify-center">
+            Error: {error}
+          </div>
+        ) : winners.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            No winners available
+          </div>
+        ) : (
+          <ScrollArea className="h-[calc(100%-2rem)] w-full">
+            <div className="relative overflow-hidden">
+              <Marquee pauseOnHover className="[--duration:450s]">
+                {winners.map((winner, index) => (
+                  <WinnerListCard key={index} {...winner} />
+                ))}
+              </Marquee>
+            </div>
+          </ScrollArea>
+        )}
+      </div>
+      <Button
+        onClick={handleRefresh}
+        disabled={isLoading}
+        className="mt-4 w-full"
+      >
         {isLoading ? "Refreshing..." : "Refresh Winners"}
       </Button>
       <AllWinnersModal
