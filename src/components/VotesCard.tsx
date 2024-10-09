@@ -1,7 +1,5 @@
 // src/components/VotesCard.tsx
 
-"use client";
-
 import React, { useState } from "react";
 import { BentoCard } from "@/components/magicui/bento-grid";
 import { GroupIcon } from "@radix-ui/react-icons";
@@ -18,7 +16,6 @@ const VotesCard = ({
   votes: CombinedVote[];
   progress: number;
 }) => {
-  console.log("VotesCard received votes:", votes);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDownload = () => {

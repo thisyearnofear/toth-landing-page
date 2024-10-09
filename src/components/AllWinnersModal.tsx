@@ -1,3 +1,5 @@
+// src/components/AllWinnersModal.tsx
+
 import React from "react";
 import {
   Dialog,

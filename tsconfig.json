@@ -22,6 +22,12 @@
     },
     "noImplicitAny": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/api/fetchAutoSubscriber/route.js"
+  ],
   "exclude": ["node_modules"]
 }

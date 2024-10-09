@@ -23,6 +23,7 @@ const DataFetching = () => {
     error,
     isLoading,
     refreshData,
+    invalidateAllCache,
   } = useDataFetching();
 
   if (error) {
@@ -46,9 +47,14 @@ const DataFetching = () => {
         />
         <AllWinnersCard />
       </BentoGrid>
-      <Button onClick={refreshData} disabled={isLoading}>
-        {isLoading ? "Refreshing..." : "Refresh Data"}
-      </Button>
+      <div className="flex space-x-4">
+        <Button onClick={() => refreshData()} disabled={isLoading}>
+          {isLoading ? "Refreshing..." : "Refresh All Data"}
+        </Button>
+        <Button onClick={invalidateAllCache} disabled={isLoading}>
+          Clear Cache
+        </Button>
+      </div>
     </ErrorBoundary>
   );
 };

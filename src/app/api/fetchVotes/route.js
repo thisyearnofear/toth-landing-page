@@ -1,29 +1,15 @@
+// src/app/api/fetchVotes/route.js
+
 import { NextResponse } from "next/server";
+import { fetchFromExternalAPI, handleAPIError } from "@/utils/apiUtils";
 
 export async function GET() {
-  const pinataJwt = process.env.PINATA_JWT;
-
   try {
-    const response = await fetch(
-      "https://toth-bec749001fd2.herokuapp.com/allVotesForRounds",
-      {
-        headers: {
-          Authorization: `Bearer ${pinataJwt}`,
-        },
-      }
+    const data = await fetchFromExternalAPI(
+      "https://toth-bec749001fd2.herokuapp.com/allVotesForRounds"
     );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch votes data from external API");
-    }
-
-    const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { message: "Error fetching votes data", error: error.message },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }

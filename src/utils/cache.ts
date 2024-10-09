@@ -1,49 +1,95 @@
-import { Nomination, Vote, Autosubscriber } from "../types";
+// src/utils/cache.ts
+
+import { Nomination, Vote, Autosubscriber, Winner } from "../types";
 import { ProfileResponse } from "../types/profile";
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+const CACHE_DURATIONS = {
+  nominations: 100 * 60 * 1000, // 100 minutes
+  votes: 50 * 60 * 1000, // 50 minutes
+  autosubscribers: 1500 * 60 * 1000, // 1500 minutes
+  winners: 200 * 60 * 1000, // 2 minutes
+};
 
 interface CacheItem<T> {
   data: T;
-  timestamp: number;
+  expiresAt: number;
 }
 
-const cache: { [key: string]: CacheItem<any> } = {};
+class Cache {
+  private storage: Storage;
 
-const isCacheValid = (item: CacheItem<any>) => {
-  return Date.now() - item.timestamp < CACHE_DURATION;
-};
-
-function getCachedData<T>(key: string): T | null {
-  const item = cache[key];
-  if (item && isCacheValid(item)) {
-    return item.data;
+  constructor() {
+    this.storage =
+      typeof window !== "undefined" ? window.localStorage : (null as any);
   }
-  return null;
+
+  private getItem<T>(key: string): CacheItem<T> | null {
+    if (!this.storage) return null;
+    const item = this.storage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  }
+
+  private setItem<T>(key: string, data: T): void {
+    if (!this.storage) return;
+    const cacheDuration =
+      CACHE_DURATIONS[key as keyof typeof CACHE_DURATIONS] ||
+      DEFAULT_CACHE_DURATION;
+    const item: CacheItem<T> = {
+      data,
+      expiresAt: Date.now() + cacheDuration,
+    };
+    this.storage.setItem(key, JSON.stringify(item));
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.getItem<T>(key);
+    if (item && item.expiresAt > Date.now()) {
+      return item.data;
+    }
+    return null;
+  }
+
+  set<T>(key: string, data: T): void {
+    this.setItem(key, data);
+  }
+
+  invalidate(key: string): void {
+    if (this.storage) {
+      this.storage.removeItem(key);
+    }
+  }
+
+  invalidateAll(): void {
+    if (this.storage) {
+      this.storage.clear();
+    }
+  }
 }
 
-function setCachedData<T>(key: string, data: T): void {
-  cache[key] = { data, timestamp: Date.now() };
-}
+const cache = new Cache();
 
-export const getCachedNominations = (): Nomination[] | null =>
-  getCachedData<Nomination[]>("nominations");
-export const setCachedNominations = (data: Nomination[]): void =>
-  setCachedData("nominations", data);
+export const getCachedNominations = () =>
+  cache.get<Nomination[]>("nominations");
+export const setCachedNominations = (data: Nomination[]) =>
+  cache.set("nominations", data);
 
-export const getCachedVotes = (): Vote[] | null =>
-  getCachedData<Vote[]>("votes");
-export const setCachedVotes = (data: Vote[]): void =>
-  setCachedData("votes", data);
+export const getCachedVotes = () => cache.get<Vote[]>("votes");
+export const setCachedVotes = (data: Vote[]) => cache.set("votes", data);
 
-export const getCachedAutosubscribers = (): Autosubscriber[] | null =>
-  getCachedData<Autosubscriber[]>("autosubscribers");
-export const setCachedAutosubscribers = (data: Autosubscriber[]): void =>
-  setCachedData("autosubscribers", data);
+export const getCachedAutosubscribers = () =>
+  cache.get<Autosubscriber[]>("autosubscribers");
+export const setCachedAutosubscribers = (data: Autosubscriber[]) =>
+  cache.set("autosubscribers", data);
 
-export const getCachedProfile = (identifier: string): ProfileResponse | null =>
-  getCachedData<ProfileResponse>(`profile_${identifier}`);
-export const setCachedProfile = (
-  identifier: string,
-  data: ProfileResponse
-): void => setCachedData(`profile_${identifier}`, data);
+export const getCachedWinners = () => cache.get<Winner[]>("winners");
+export const setCachedWinners = (data: Winner[]) => cache.set("winners", data);
+
+export const getCachedProfile = (identifier: string) =>
+  cache.get<ProfileResponse>(`profile_${identifier}`);
+export const setCachedProfile = (identifier: string, data: ProfileResponse) =>
+  cache.set(`profile_${identifier}`, data);
+
+export const invalidateCache = (key: string) => cache.invalidate(key);
+export const invalidateAllCache = () => cache.invalidateAll();

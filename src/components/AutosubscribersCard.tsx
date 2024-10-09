@@ -1,3 +1,5 @@
+// src/components/AutosubscribersCard.tsx
+
 import React, { useState } from "react";
 import { BentoCard } from "@/components/magicui/bento-grid";
 import { BellIcon } from "@radix-ui/react-icons";

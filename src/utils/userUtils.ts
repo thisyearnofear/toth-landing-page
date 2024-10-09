@@ -1,5 +1,7 @@
 // utils/userUtils.ts
-export const generateUserUrl = (username: string) => {
-  const cleanUsername = username.startsWith("@") ? username.slice(1) : username;
-  return `https://warpcast.com/${cleanUsername}`;
+export const generateUserUrl = (username: string | undefined): string => {
+  if (!username) return "#";
+  return username.startsWith("@")
+    ? `https://warpcast.com/${username.slice(1)}`
+    : `https://warpcast.com/${username}`;
 };

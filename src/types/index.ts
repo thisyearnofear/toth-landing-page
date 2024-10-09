@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 export interface Nomination {
   id: string;
   nominator: string;
@@ -29,8 +31,10 @@ export interface Autosubscriber {
 }
 
 export interface Winner {
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
+  roundNumber: number;
+  username: string;
+  date: string;
+  fid: number;
+  rootParentUrl: string | null;
+  text: string;
 }

@@ -1,3 +1,5 @@
+// src/components/NominationsCard.tsx
+
 "use client";
 
 import React, { useState } from "react";
