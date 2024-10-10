@@ -225,29 +225,26 @@ export const useDataFetching = () => {
               "winners",
               async () => {
                 const response = await fetch("/api/fetchWinners");
-                const data = await response.json();
-                console.log("Winners data fetched:", data);
+                const data: Winner[] = await response.json();
 
                 const fids = data
-                  .map((winner: any) => winner.winner?.cast?.author?.fid)
+                  .map((winner: Winner) => winner.fid.toString())
                   .filter(Boolean);
                 const userInfoMap = await fetchBulkUserInfo(fids);
 
-                return data.map((winner: any) => {
-                  const fid = winner.winner?.cast?.author?.fid;
+                return data.map((winner: Winner) => {
+                  const fid = winner.fid;
                   const userData = fid ? userInfoMap[fid] : null;
                   return {
                     roundNumber: winner.roundNumber,
                     username: userData?.username || "Unknown User",
-                    date: winner.winner?.cast?.timestamp
-                      ? new Date(
-                          winner.winner.cast.timestamp
-                        ).toLocaleDateString()
+                    date: winner.date
+                      ? new Date(winner.date).toLocaleDateString()
                       : `Round ${winner.roundNumber}`,
                     fid: fid,
-                    rootParentUrl: winner.winner?.cast?.root_parent_url || null,
+                    rootParentUrl: winner.rootParentUrl || null,
                     text:
-                      winner.winner?.cast?.text ||
+                      winner.text ||
                       userData?.profile?.bio?.text ||
                       "No text available",
                   };
