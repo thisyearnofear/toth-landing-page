@@ -1,3 +1,5 @@
+// src/components/DataFetching.tsx
+
 import React from "react";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { BentoGrid } from "@/components/magicui/bento-grid";
