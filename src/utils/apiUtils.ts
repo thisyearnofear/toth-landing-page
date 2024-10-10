@@ -19,7 +19,7 @@ export async function fetchFromExternalAPI(url: string) {
   });
 
   const jsonData = await response.json();
-  console.log("Fetched data from:", url, jsonData); // Log the raw data
+  // console.log("Fetched data from:", url, jsonData); // Log the raw data
 
   if (!response.ok) {
     throw new Error(
