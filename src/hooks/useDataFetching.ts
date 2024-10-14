@@ -105,7 +105,7 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchNominations");
                 const data = await response.json();
-                console.log("Nominations data fetched:", data);
+                // console.log("Nominations data fetched:", data);
 
                 const allNominations = data
                   .flatMap((round: any) =>
@@ -150,7 +150,7 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchVotes");
                 const data = await response.json();
-                console.log("Votes data fetched:", data);
+                // console.log("Votes data fetched:", data);
 
                 const allVotes = data
                   .flatMap((round: any) =>
@@ -193,7 +193,7 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchAutosubscribers");
                 const data = await response.json();
-                console.log("Autosubscribers data fetched:", data);
+                // console.log("Autosubscribers data fetched:", data);
 
                 const validSubscribers = data.filter(
                   (sub: any) =>
@@ -226,28 +226,28 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchWinners");
                 const data = await response.json();
-                console.log("Winners data fetched:", data);
 
                 const fids = data
-                  .map((winner: any) => winner.winner?.cast?.author?.fid)
+                  .map((winner: any) => winner.fid)
                   .filter(Boolean);
                 const userInfoMap = await fetchBulkUserInfo(fids);
 
-                return data.map((winner: any) => {
-                  const fid = winner.winner?.cast?.author?.fid;
+                return data.map((round: any) => {
+                  const winner = round.winner;
+                  const fid = winner?.fid;
                   const userData = fid ? userInfoMap[fid] : null;
+
                   return {
-                    roundNumber: winner.roundNumber,
-                    username: userData?.username || "Unknown User",
-                    date: winner.winner?.cast?.timestamp
-                      ? new Date(
-                          winner.winner.cast.timestamp
-                        ).toLocaleDateString()
-                      : `Round ${winner.roundNumber}`,
+                    roundNumber: round.roundNumber,
+                    username:
+                      userData?.username || winner?.username || "Unknown User",
+                    date: winner?.date
+                      ? new Date(winner.date).toLocaleDateString()
+                      : `Round ${round.roundNumber}`,
                     fid: fid,
-                    rootParentUrl: winner.winner?.cast?.root_parent_url || null,
+                    rootParentUrl: winner?.rootParentUrl || null,
                     text:
-                      winner.winner?.cast?.text ||
+                      winner?.text ||
                       userData?.profile?.bio?.text ||
                       "No text available",
                   };
