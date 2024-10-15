@@ -59,6 +59,12 @@
   }
 }
 
+.top-hat-embed {
+  width: 100%; /* Set to 100% or a specific width */
+  max-width: 800px; /* Adjust this value as needed */
+  margin: 0 auto; /* Center the embed */
+}
+
 @layer base {
   * {
     @apply border-border;

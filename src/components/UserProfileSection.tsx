@@ -6,7 +6,7 @@ import { useProfile } from "@/hooks/useProfile";
 import ProfileComponent from "./ProfileComponent";
 
 const UserProfileSection: React.FC = () => {
-  const [identifier, setIdentifier] = useState("vitalik.eth");
+  const [identifier, setIdentifier] = useState("leovido.eth");
   const { profiles, loading, error } = useProfile(identifier);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

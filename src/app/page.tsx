@@ -8,13 +8,15 @@ import UserProfileSection from "@/components/UserProfileSection";
 import DataFetching from "@/components/DataFetching";
 import Directory from "@/components/Directory";
 import Footer from "@/components/Footer";
+import TopHatEmbed from "@/components/TopHatEmbed";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-purple-100 flex flex-col items-center justify-center p-4">
       <Header />
-      <UserProfileSection />
+      <TopHatEmbed />
       <DataFetching />
+      <UserProfileSection />
       <Directory />
       <Footer />
     </main>
