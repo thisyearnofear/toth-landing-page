@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const TopHatEmbed = () => {
+const BaseGlobeEmbed = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -9,7 +9,7 @@ const TopHatEmbed = () => {
 
   if (!mounted) {
     return (
-      <div className="top-hat-embed loading-placeholder">
+      <div className="base-globe-embed loading-placeholder">
         {/* Placeholder or loading spinner */}
         <div className="spinner"></div>
       </div>
@@ -17,13 +17,14 @@ const TopHatEmbed = () => {
   }
 
   return (
-    <div className="top-hat-embed">
+    <div className="base-globe-embed">
       <p
         className="codepen"
         data-height="300"
+        data-theme-id="light"
         data-default-tab="result"
-        data-slug-hash="abeJXXZ"
-        data-pen-title="TOTH"
+        data-slug-hash="oNKZREY"
+        data-pen-title="BaseGlobe"
         data-user="thisyearnofear"
         style={{
           height: "300px",
@@ -37,8 +38,8 @@ const TopHatEmbed = () => {
         }}
       >
         <span>
-          <a href="https://codepen.io/thisyearnofear/pen/abeJXXZ">
-            The Hat Stays On 🎩
+          <a href="https://codepen.io/thisyearnofear/pen/oNKZREY">
+            BaseGlobe 🔵
           </a>
         </span>
       </p>
@@ -50,4 +51,4 @@ const TopHatEmbed = () => {
   );
 };
 
-export default TopHatEmbed;
+export default BaseGlobeEmbed;
