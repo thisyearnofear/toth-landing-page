@@ -9,7 +9,7 @@ const CACHE_DURATIONS = {
   nominations: 100 * 60 * 1000, // 100 minutes
   votes: 50 * 60 * 1000, // 50 minutes
   autosubscribers: 1500 * 60 * 1000, // 1500 minutes
-  winners: 200 * 60 * 1000, // 2 minutes
+  winners: 5 * 60 * 1000, // 5 minutes
 };
 
 interface CacheItem<T> {

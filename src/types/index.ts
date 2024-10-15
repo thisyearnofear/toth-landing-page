@@ -32,9 +32,8 @@ export interface Autosubscriber {
 
 export interface Winner {
   roundNumber: number;
-  username: string;
   date: string;
+  username: string;
   fid: number;
-  rootParentUrl: string | null;
   text: string;
 }

@@ -5,14 +5,15 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const fids = searchParams.get("fids");
 
-  if (!fids || typeof fids !== "string") {
-    return NextResponse.json(
-      { error: "FIDs must be provided as a comma-separated string" },
-      { status: 400 }
-    );
+  if (!fids || typeof fids !== "string" || fids.trim() === "") {
+    return NextResponse.json({}, { status: 200 });
   }
 
-  const fidArray = fids.split(",");
+  const fidArray = fids.split(",").filter((fid) => fid.trim() !== "");
+
+  if (fidArray.length === 0) {
+    return NextResponse.json({}, { status: 200 });
+  }
 
   try {
     const userInfos = await Promise.all(
@@ -31,17 +32,23 @@ export async function GET(request: NextRequest) {
 }
 
 async function fetchUserInfoFromPinata(fid: string) {
-  const data = await fetchFromExternalAPI(
-    `https://api.pinata.cloud/v3/farcaster/users/${fid}`
-  );
+  try {
+    const data = await fetchFromExternalAPI(
+      `https://api.pinata.cloud/v3/farcaster/users/${fid}`
+    );
 
-  if (!data.user) {
-    throw new Error(`User data is missing for FID: ${fid}`);
+    if (!data.user) {
+      console.warn(`User data is missing for FID: ${fid}`);
+      return { fid, username: `User ${fid}`, pfp_url: null };
+    }
+
+    return {
+      fid,
+      username: data.user.username || `User ${fid}`,
+      pfp_url: data.user.pfp_url || null,
+    };
+  } catch (error) {
+    console.error(`Error fetching user info for FID: ${fid}`, error);
+    return { fid, username: `User ${fid}`, pfp_url: null };
   }
-
-  return {
-    fid,
-    username: data.user.username,
-    pfp_url: data.user.pfp_url,
-  };
 }

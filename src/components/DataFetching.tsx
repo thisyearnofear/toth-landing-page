@@ -15,9 +15,11 @@ const DataFetching: React.FC = () => {
     nominations,
     combinedVotes,
     autosubscribers,
+    winners,
     nominationsProgress,
     votesProgress,
     autosubscribersProgress,
+    winnersProgress,
     error,
     isLoading,
     refreshData,
@@ -37,6 +39,7 @@ const DataFetching: React.FC = () => {
       fallback={<div>Something went wrong. Please try again later.</div>}
     >
       <div className="max-w-6xl mx-auto mb-4"></div>
+
       <BentoGrid className="max-w-6xl mx-auto mb-12">
         <NominationsCard
           nominations={nominations}
@@ -47,7 +50,7 @@ const DataFetching: React.FC = () => {
           subscribers={autosubscribers}
           progress={autosubscribersProgress}
         />
-        <AllWinnersCard />
+        <AllWinnersCard winners={winners} progress={winnersProgress} />{" "}
       </BentoGrid>
       <Button onClick={handleRefreshClick} disabled={isLoading}>
         {isLoading ? "Refreshing..." : "Refresh Data"}

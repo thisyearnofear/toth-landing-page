@@ -1,5 +1,3 @@
-// src/hooks/useDataFetching.ts
-
 import { useState, useEffect, useCallback } from "react";
 import {
   Nomination,
@@ -44,10 +42,18 @@ export const useDataFetching = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchBulkUserInfo = async (fids: string[]) => {
-    const response = await fetch(
-      `/api/fetchBulkUserInfo?fids=${fids.join(",")}`
-    );
-    return await response.json();
+    if (fids.length === 0) return {};
+    try {
+      const response = await fetch(
+        `/api/fetchBulkUserInfo?fids=${fids.join(",")}`
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching bulk user info:", error);
+      return {};
+    }
   };
 
   const combineVotesWithNominations = useCallback(
@@ -82,7 +88,6 @@ export const useDataFetching = () => {
           options.forceRefreshAll || forceRefresh || isInitialLoad;
         const cachedData = getCachedData();
 
-        console.log(`Cached data for ${key}:`, cachedData);
         if (cachedData && !shouldFetch) {
           console.log(`Using cached data for ${key}`);
           return cachedData;
@@ -105,8 +110,6 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchNominations");
                 const data = await response.json();
-                // console.log("Nominations data fetched:", data);
-
                 const allNominations = data
                   .flatMap((round: any) =>
                     round.nominations.map((nom: any) => ({
@@ -150,8 +153,6 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchVotes");
                 const data = await response.json();
-                // console.log("Votes data fetched:", data);
-
                 const allVotes = data
                   .flatMap((round: any) =>
                     round.votes.map((vote: any) => ({
@@ -193,8 +194,6 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchAutosubscribers");
                 const data = await response.json();
-                // console.log("Autosubscribers data fetched:", data);
-
                 const validSubscribers = data.filter(
                   (sub: any) =>
                     sub.tips?.allowance && parseInt(sub.tips.allowance) > 0
@@ -226,32 +225,22 @@ export const useDataFetching = () => {
               async () => {
                 const response = await fetch("/api/fetchWinners");
                 const data = await response.json();
-
                 const fids = data
-                  .map((winner: any) => winner.fid)
+                  .map((winner: any) => winner.winner?.fid)
                   .filter(Boolean);
                 const userInfoMap = await fetchBulkUserInfo(fids);
 
-                return data.map((round: any) => {
-                  const winner = round.winner;
-                  const fid = winner?.fid;
-                  const userData = fid ? userInfoMap[fid] : null;
-
-                  return {
-                    roundNumber: round.roundNumber,
+                return data
+                  .map((winner: any) => ({
+                    roundNumber: winner.roundNumber,
+                    date: new Date(winner.winner?.date).toLocaleDateString(),
                     username:
-                      userData?.username || winner?.username || "Unknown User",
-                    date: winner?.date
-                      ? new Date(winner.date).toLocaleDateString()
-                      : `Round ${round.roundNumber}`,
-                    fid: fid,
-                    rootParentUrl: winner?.rootParentUrl || null,
-                    text:
-                      winner?.text ||
-                      userData?.profile?.bio?.text ||
-                      "No text available",
-                  };
-                });
+                      userInfoMap[winner.winner?.fid]?.username ||
+                      `User ${winner.winner?.fid}`,
+                    fid: winner.winner?.fid,
+                    text: winner.winner?.text,
+                  }))
+                  .reverse();
               },
               getCachedWinners,
               setCachedWinners,
