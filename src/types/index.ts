@@ -37,3 +37,10 @@ export interface Winner {
   fid: number;
   text: string;
 }
+
+export interface UserStats {
+  votes: Vote[];
+  nominations: Nomination[];
+  isAutosubscriber: boolean;
+  wins: Winner[];
+}

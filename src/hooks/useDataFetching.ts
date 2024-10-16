@@ -78,7 +78,7 @@ export const useDataFetching = () => {
 
       const fetchAndCacheData = async <T>(
         key: string,
-        fetchFunc: () => Promise<T>,
+        fetchFunc: (setProgress: (progress: number) => void) => Promise<T>,
         getCachedData: () => T | null,
         setCachedData: (data: T) => void,
         setProgress: (progress: number) => void,
@@ -95,7 +95,7 @@ export const useDataFetching = () => {
 
         setProgress(10);
         console.log(`Fetching fresh data for ${key}`);
-        const data = await fetchFunc();
+        const data = await fetchFunc(setProgress);
         setProgress(100);
         setCachedData(data);
         console.log(`Fetched and cached data for ${key}:`, data);
@@ -107,9 +107,10 @@ export const useDataFetching = () => {
           await Promise.all([
             fetchAndCacheData<Nomination[]>(
               "nominations",
-              async () => {
+              async (setProgress) => {
                 const response = await fetch("/api/fetchNominations");
                 const data = await response.json();
+                setProgress(50);
                 const allNominations = data
                   .flatMap((round: any) =>
                     round.nominations.map((nom: any) => ({
@@ -126,6 +127,7 @@ export const useDataFetching = () => {
                 const recentNominations = allNominations.slice(0, 20);
                 const fids = recentNominations.map((nom: any) => nom.fid);
                 const userInfoMap = await fetchBulkUserInfo(fids);
+                setProgress(90);
 
                 return recentNominations
                   .map((nom: any) => {
@@ -150,9 +152,10 @@ export const useDataFetching = () => {
             ),
             fetchAndCacheData<Vote[]>(
               "votes",
-              async () => {
+              async (setProgress) => {
                 const response = await fetch("/api/fetchVotes");
                 const data = await response.json();
+                setProgress(50);
                 const allVotes = data
                   .flatMap((round: any) =>
                     round.votes.map((vote: any) => ({
@@ -168,6 +171,7 @@ export const useDataFetching = () => {
 
                 const fids = allVotes.map((vote: any) => vote.fid);
                 const userInfoMap = await fetchBulkUserInfo(fids);
+                setProgress(90);
 
                 return allVotes
                   .map((vote: any) => {
@@ -191,15 +195,17 @@ export const useDataFetching = () => {
             ),
             fetchAndCacheData<Autosubscriber[]>(
               "autosubscribers",
-              async () => {
+              async (setProgress) => {
                 const response = await fetch("/api/fetchAutosubscribers");
                 const data = await response.json();
+                setProgress(50);
                 const validSubscribers = data.filter(
                   (sub: any) =>
                     sub.tips?.allowance && parseInt(sub.tips.allowance) > 0
                 );
                 const fids = validSubscribers.map((sub: any) => sub.fid);
                 const userInfoMap = await fetchBulkUserInfo(fids);
+                setProgress(90);
 
                 return validSubscribers
                   .map((sub: any) => {
@@ -222,24 +228,37 @@ export const useDataFetching = () => {
             ),
             fetchAndCacheData<Winner[]>(
               "winners",
-              async () => {
+              async (setProgress) => {
                 const response = await fetch("/api/fetchWinners");
                 const data = await response.json();
-                const fids = data
-                  .map((winner: any) => winner.winner?.fid)
+                setProgress(50);
+                const validWinners = data.filter(
+                  (winner: any) =>
+                    winner.winner && winner.winner.fid && winner.winner.date
+                );
+                const fids = validWinners
+                  .map((winner: any) => winner.winner.fid)
                   .filter(Boolean);
                 const userInfoMap = await fetchBulkUserInfo(fids);
+                setProgress(90);
 
-                return data
-                  .map((winner: any) => ({
-                    roundNumber: winner.roundNumber,
-                    date: new Date(winner.winner?.date).toLocaleDateString(),
-                    username:
-                      userInfoMap[winner.winner?.fid]?.username ||
-                      `User ${winner.winner?.fid}`,
-                    fid: winner.winner?.fid,
-                    text: winner.winner?.text,
-                  }))
+                return validWinners
+                  .map((winner: any) => {
+                    const userData = userInfoMap[winner.winner.fid];
+                    return {
+                      roundNumber: winner.roundNumber,
+                      date: new Date(winner.winner.date).toLocaleDateString(),
+                      username:
+                        userData?.username || `User ${winner.winner.fid}`,
+                      fid: winner.winner.fid,
+                      text: winner.winner.text || "No text available",
+                    };
+                  })
+                  .filter(
+                    (winner: Winner) =>
+                      winner.username !== "undefined" &&
+                      winner.date !== "Invalid Date"
+                  )
                   .reverse();
               },
               getCachedWinners,
