@@ -1,42 +1,34 @@
 // src/hooks/useProfile.ts
 
 import { useState, useEffect } from "react";
-import { Profile, ProfileResponse } from "@/types/profile";
-import { fetchUserProfile } from "@/utils/apiClient";
-import { getCachedProfile, setCachedProfile } from "@/utils/cache";
+import { fetchAllProfiles } from "@/utils/apiClient";
+import { Profile } from "@/types/profile";
 
 export const useProfile = (identifier: string) => {
-  const [profiles, setProfiles] = useState<ProfileResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfiles = async () => {
       try {
         setLoading(true);
-
-        // Check cache first
-        const cachedData = getCachedProfile(identifier);
-        if (cachedData) {
-          setProfiles(cachedData);
-          setLoading(false);
-          return;
-        }
-
-        const data = await fetchUserProfile(identifier);
-        setProfiles(data);
-
-        // Cache the fetched data
-        setCachedProfile(identifier, data);
+        const { profiles, suggestion } = await fetchAllProfiles(identifier);
+        setProfiles(profiles);
+        setSuggestion(suggestion || null);
+        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("An error occurred"));
+        setError(err instanceof Error ? err.message : "An error occurred");
+        setProfiles([]);
+        setSuggestion(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    fetchProfiles();
   }, [identifier]);
 
-  return { profiles, loading, error };
+  return { profiles, loading, error, suggestion };
 };

@@ -7,7 +7,7 @@ import ProfileComponent from "./ProfileComponent";
 
 const UserProfileSection: React.FC = () => {
   const [identifier, setIdentifier] = useState("leovido.eth");
-  const { profiles, loading, error } = useProfile(identifier);
+  const { profiles, loading, error, suggestion } = useProfile(identifier);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,17 +39,18 @@ const UserProfileSection: React.FC = () => {
       </form>
 
       {loading && <div className="text-center text-purple-600">Loading...</div>}
-      {error && (
-        <div className="text-center text-red-500">Error: {error.message}</div>
+      {error && <div className="text-center text-red-500">Error: {error}</div>}
+      {suggestion && (
+        <div className="text-center text-yellow-600 mt-2">{suggestion}</div>
       )}
       {profiles && profiles.length > 0 ? (
         <div className="mt-6">
-          {" "}
-          {/* Increased margin-top for more space */}
           <ProfileComponent profiles={profiles} />
         </div>
       ) : (
-        <div className="text-center text-purple-600 mt-4">No profile found</div>
+        <div className="text-center text-purple-600 mt-4">
+          No profiles found
+        </div>
       )}
     </section>
   );

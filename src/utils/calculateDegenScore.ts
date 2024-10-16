@@ -1,8 +1,11 @@
-import { UserStats } from "../types";
+// src/utils/calculateDegenScore.ts
 
-export const calculateDegenScore = (
-  stats: UserStats
-): {
+import { Nomination } from "../types";
+import { mockScoreData } from "@/data/mockData";
+
+export const calculateDegenScore = (stats: {
+  nominations: Nomination[];
+}): {
   total: number;
   kindness: number;
   recognition: number;
@@ -12,19 +15,18 @@ export const calculateDegenScore = (
   const last25Days = 25 * 24 * 60 * 60 * 1000; // 25 days in milliseconds
   const now = Date.now();
 
-  const recentVotes = stats.votes.filter(
-    (vote) => now - new Date(vote.date).getTime() < last25Days
-  ).length;
   const recentNominations = stats.nominations.filter(
     (nom) => now - new Date(nom.date).getTime() < last25Days
   ).length;
 
   const kindness = Math.min(recentNominations, 25);
-  const governance = Math.min(recentVotes, 25);
-  const recognition = stats.nominations.length > 0 ? 25 : 0;
-  const value = stats.isAutosubscriber ? 25 : 0;
 
-  const total = kindness + governance + recognition + value;
+  // Use mock data for other scores
+  const recognition = mockScoreData.recognition[0].value;
+  const governance = mockScoreData.governance[0].value;
+  const value = mockScoreData.value[0].value;
 
-  return { total, kindness, governance, recognition, value };
+  const total = kindness + recognition + governance + value;
+
+  return { total, kindness, recognition, governance, value };
 };

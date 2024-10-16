@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Winner } from "../types";
 import WinnerListCard from "./WinnerListCard";
+import { FixedSizeList as List } from "react-window";
 
 interface AllWinnersModalProps {
   isOpen: boolean;
@@ -26,6 +27,18 @@ const AllWinnersModal: React.FC<AllWinnersModalProps> = ({
   winners,
   onDownload,
 }) => {
+  const Row = ({ index, style }) => (
+    <div style={style}>
+      <WinnerListCard {...winners[index]} />
+    </div>
+  );
+
+  const WinnersList = () => (
+    <List height={400} itemCount={winners.length} itemSize={35} width={300}>
+      {Row}
+    </List>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -35,11 +48,7 @@ const AllWinnersModal: React.FC<AllWinnersModalProps> = ({
             View all winners and download the list of winners.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[300px] w-full pr-4">
-          {winners.map((winner, index) => (
-            <WinnerListCard key={index} {...winner} />
-          ))}
-        </ScrollArea>
+        <WinnersList />
         <Button onClick={onDownload}>Download Winners List</Button>
       </DialogContent>
     </Dialog>

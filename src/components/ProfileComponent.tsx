@@ -29,7 +29,7 @@ const ProfileComponent: React.FC<ProfileProps> = ({ profiles }) => {
     const ensIndex = profiles.findIndex(
       (profile) => profile.platform === "ens"
     );
-    return ensIndex !== -1 ? ensIndex : null;
+    return ensIndex !== -1 ? ensIndex : 0;
   });
   const [totalScore, setTotalScore] = useState(0);
 

@@ -7,6 +7,7 @@ export interface Nomination {
   round: number;
   date: string;
   nominatorPfp: string;
+  nominatorFid: number;
 }
 
 export interface Vote {

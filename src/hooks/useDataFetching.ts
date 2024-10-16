@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Nomination,
   CombinedVote,
@@ -18,6 +18,7 @@ import {
   invalidateCache,
   invalidateAllCache,
 } from "../utils/cache";
+import { debounce } from "../utils/debounce";
 
 interface FetchOptions {
   forceRefreshAll?: boolean;
@@ -40,6 +41,8 @@ export const useDataFetching = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const fetchBulkUserInfo = async (fids: string[]) => {
     if (fids.length === 0) return {};
@@ -139,6 +142,7 @@ export const useDataFetching = () => {
                       round: nom.roundNumber,
                       date: new Date(nom.createdAt).toLocaleDateString(),
                       nominatorPfp: userData?.pfp_url,
+                      nominatorFid: nom.fid,
                     };
                   })
                   .filter(
@@ -291,9 +295,23 @@ export const useDataFetching = () => {
     [combineVotesWithNominations, isInitialLoad]
   );
 
+  const debouncedRefreshData = useCallback(
+    debounce((options) => {
+      // Your refresh logic here
+    }, 300),
+    []
+  );
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const fetchMoreData = useCallback(() => {
+    if (hasMore) {
+      // Fetch next page of data
+      setPage((prevPage) => prevPage + 1);
+    }
+  }, [hasMore]);
 
   return {
     nominations,
@@ -310,5 +328,9 @@ export const useDataFetching = () => {
       fetchData(options),
     invalidateCache,
     invalidateAllCache,
+    debouncedRefreshData,
+    fetchMoreData,
+    page,
+    hasMore,
   };
 };

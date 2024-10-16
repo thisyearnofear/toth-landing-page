@@ -13,14 +13,15 @@ export interface ProfileLinks {
   website?: ProfileLink;
   farcaster?: ProfileLink;
   lens?: ProfileLink;
-  social?: SocialStats;
-  [key: string]: ProfileLink | SocialStats | undefined;
+  [key: string]: ProfileLink | undefined;
 }
+
+export type Platform = "ens" | "farcaster" | "lens";
 
 export interface Profile {
   address: string;
   identity: string;
-  platform: string;
+  platform: Platform;
   displayName: string;
   avatar: string | null;
   description: string | null;
@@ -29,6 +30,7 @@ export interface Profile {
   header: string | null;
   contenthash: string | null;
   links: ProfileLinks;
+  social: SocialStats;
 }
 
 export type ProfileResponse = Profile[];

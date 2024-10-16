@@ -1,14 +1,16 @@
 // src/components/DataFetching.tsx
 
-import React from "react";
+import React, { lazy, Suspense, useCallback } from "react";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { BentoGrid } from "@/components/magicui/bento-grid";
 import NominationsCard from "@/components/NominationsCard";
 import VotesCard from "@/components/VotesCard";
-import AllWinnersCard from "@/components/AllWinnersCard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AutosubscribersCard from "@/components/AutosubscribersCard";
 import { Button } from "@/components/ui/button";
+import "@/components/AllWinnersCard";
+
+const AllWinnersCard = lazy(() => import("@/components/AllWinnersCard"));
 
 const DataFetching: React.FC = () => {
   const {
@@ -31,8 +33,13 @@ const DataFetching: React.FC = () => {
 
   const handleRefreshClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    refreshData();
+    refreshData({ forceRefreshAll: true });
   };
+
+  const handleWinnersRefresh = useCallback(
+    () => refreshData({ forceRefreshWinners: true }),
+    [refreshData]
+  );
 
   return (
     <ErrorBoundary
@@ -50,7 +57,13 @@ const DataFetching: React.FC = () => {
           subscribers={autosubscribers}
           progress={autosubscribersProgress}
         />
-        <AllWinnersCard winners={winners} progress={winnersProgress} />{" "}
+        <Suspense fallback={<div>Loading...</div>}>
+          <AllWinnersCard
+            winners={winners}
+            progress={winnersProgress}
+            onRefresh={handleWinnersRefresh}
+          />
+        </Suspense>
       </BentoGrid>
       <Button onClick={handleRefreshClick} disabled={isLoading}>
         {isLoading ? "Refreshing..." : "Refresh Data"}

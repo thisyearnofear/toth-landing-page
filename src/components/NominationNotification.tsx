@@ -10,6 +10,7 @@ const NominationNotification: React.FC<Nomination> = ({
   round,
   date,
   nominatorPfp,
+  nominatorFid,
 }) => {
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg bg-white bg-opacity-20 mb-2 w-full">
@@ -30,6 +31,12 @@ const NominationNotification: React.FC<Nomination> = ({
           >
             {nominator}
           </a>
+          <span
+            className="text-sm text-black ml-1"
+            style={{ fontWeight: "normal" }}
+          >
+            ({nominatorFid})
+          </span>
         </span>
         <span className="text-sm">
           nominated{" "}
