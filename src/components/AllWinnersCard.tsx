@@ -65,7 +65,7 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
             ) : (
               <ReloadIcon className="mr-2 h-4 w-4" />
             )}
-            Refresh Winners
+            Reload
           </Button>
         </div>
         {progress < 100 || isRefreshing ? (
