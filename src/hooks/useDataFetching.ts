@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Nomination,
   CombinedVote,
@@ -43,6 +43,8 @@ export const useDataFetching = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [lastFetchTime, setLastFetchTime] = useState<Date>(new Date());
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchBulkUserInfo = async (fids: string[]) => {
     if (fids.length === 0) return {};
@@ -73,6 +75,12 @@ export const useDataFetching = () => {
     []
   );
 
+  const filterLast30Days = useCallback((data: any[], dateField: string) => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return data.filter((item) => new Date(item[dateField]) >= thirtyDaysAgo);
+  }, []);
+
   const fetchData = useCallback(
     async (options: FetchOptions = {}) => {
       console.log("Fetching data with options:", options);
@@ -81,7 +89,7 @@ export const useDataFetching = () => {
 
       const fetchAndCacheData = async <T>(
         key: string,
-        fetchFunc: (setProgress: (progress: number) => void) => Promise<T>,
+        fetchFunc: () => Promise<T>,
         getCachedData: () => T | null,
         setCachedData: (data: T) => void,
         setProgress: (progress: number) => void,
@@ -98,7 +106,7 @@ export const useDataFetching = () => {
 
         setProgress(10);
         console.log(`Fetching fresh data for ${key}`);
-        const data = await fetchFunc(setProgress);
+        const data = await fetchFunc();
         setProgress(100);
         setCachedData(data);
         console.log(`Fetched and cached data for ${key}:`, data);
@@ -110,10 +118,9 @@ export const useDataFetching = () => {
           await Promise.all([
             fetchAndCacheData<Nomination[]>(
               "nominations",
-              async (setProgress) => {
+              async () => {
                 const response = await fetch("/api/fetchNominations");
                 const data = await response.json();
-                setProgress(50);
                 const allNominations = data
                   .flatMap((round: any) =>
                     round.nominations.map((nom: any) => ({
@@ -127,10 +134,14 @@ export const useDataFetching = () => {
                       new Date(a.createdAt).getTime()
                   );
 
-                const recentNominations = allNominations.slice(0, 20);
+                const filteredNominations = filterLast30Days(
+                  allNominations,
+                  "createdAt"
+                );
+                const recentNominations = filteredNominations.slice(0, 20);
+
                 const fids = recentNominations.map((nom: any) => nom.fid);
                 const userInfoMap = await fetchBulkUserInfo(fids);
-                setProgress(90);
 
                 return recentNominations
                   .map((nom: any) => {
@@ -156,10 +167,9 @@ export const useDataFetching = () => {
             ),
             fetchAndCacheData<Vote[]>(
               "votes",
-              async (setProgress) => {
+              async () => {
                 const response = await fetch("/api/fetchVotes");
                 const data = await response.json();
-                setProgress(50);
                 const allVotes = data
                   .flatMap((round: any) =>
                     round.votes.map((vote: any) => ({
@@ -173,11 +183,12 @@ export const useDataFetching = () => {
                       new Date(a.createdAt).getTime()
                   );
 
-                const fids = allVotes.map((vote: any) => vote.fid);
-                const userInfoMap = await fetchBulkUserInfo(fids);
-                setProgress(90);
+                const filteredVotes = filterLast30Days(allVotes, "createdAt");
 
-                return allVotes
+                const fids = filteredVotes.map((vote: any) => vote.fid);
+                const userInfoMap = await fetchBulkUserInfo(fids);
+
+                return filteredVotes
                   .map((vote: any) => {
                     const userData = userInfoMap[vote.fid];
                     return {
@@ -199,17 +210,15 @@ export const useDataFetching = () => {
             ),
             fetchAndCacheData<Autosubscriber[]>(
               "autosubscribers",
-              async (setProgress) => {
+              async () => {
                 const response = await fetch("/api/fetchAutosubscribers");
                 const data = await response.json();
-                setProgress(50);
                 const validSubscribers = data.filter(
                   (sub: any) =>
                     sub.tips?.allowance && parseInt(sub.tips.allowance) > 0
                 );
                 const fids = validSubscribers.map((sub: any) => sub.fid);
                 const userInfoMap = await fetchBulkUserInfo(fids);
-                setProgress(90);
 
                 return validSubscribers
                   .map((sub: any) => {
@@ -232,19 +241,18 @@ export const useDataFetching = () => {
             ),
             fetchAndCacheData<Winner[]>(
               "winners",
-              async (setProgress) => {
+              async () => {
                 const response = await fetch("/api/fetchWinners");
                 const data = await response.json();
-                setProgress(50);
                 const validWinners = data.filter(
                   (winner: any) =>
                     winner.winner && winner.winner.fid && winner.winner.date
                 );
+
                 const fids = validWinners
                   .map((winner: any) => winner.winner.fid)
                   .filter(Boolean);
                 const userInfoMap = await fetchBulkUserInfo(fids);
-                setProgress(90);
 
                 return validWinners
                   .map((winner: any) => {
@@ -282,6 +290,8 @@ export const useDataFetching = () => {
           nominationsData
         );
         setCombinedVotes(combined);
+
+        setLastFetchTime(new Date());
       } catch (error) {
         console.error("Error fetching data:", error);
         setError(
@@ -292,19 +302,62 @@ export const useDataFetching = () => {
         setIsInitialLoad(false);
       }
     },
-    [combineVotesWithNominations, isInitialLoad]
+    [combineVotesWithNominations, isInitialLoad, filterLast30Days]
   );
 
-  const debouncedRefreshData = useCallback(
-    debounce((options) => {
-      // Your refresh logic here
-    }, 300),
-    []
+  const debouncedFetchData = useMemo(
+    () => debounce(fetchData, 300),
+    [fetchData]
+  );
+
+  const refreshData = useCallback(
+    (options: FetchOptions = {}) => {
+      debouncedFetchData(options);
+    },
+    [debouncedFetchData]
   );
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const fetchInitialData = async () => {
+      await fetchData();
+    };
+
+    fetchInitialData();
+
+    // Set up periodic checks for new data
+    const checkForNewData = async () => {
+      const now = new Date();
+      const hoursSinceLastFetch =
+        (now.getTime() - lastFetchTime.getTime()) / (1000 * 60 * 60);
+
+      if (hoursSinceLastFetch >= 4) {
+        await refreshData({
+          forceRefreshNominations: true,
+          forceRefreshVotes: true,
+        });
+      }
+
+      if (now.getHours() === 0 && now.getMinutes() < 15) {
+        // It's between midnight and 00:15, refresh winners and autosubscribers
+        await refreshData({
+          forceRefreshWinners: true,
+          forceRefreshAutosubscribers: true,
+        });
+      }
+    };
+
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current);
+    }
+
+    intervalIdRef.current = setInterval(checkForNewData, 15 * 60 * 1000); // Check every 15 minutes
+
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+      }
+    };
+  }, [fetchData, refreshData]);
 
   const fetchMoreData = useCallback(() => {
     if (hasMore) {
@@ -313,24 +366,39 @@ export const useDataFetching = () => {
     }
   }, [hasMore]);
 
+  const memoizedData = useMemo(
+    () => ({
+      nominations,
+      combinedVotes,
+      autosubscribers,
+      winners,
+    }),
+    [nominations, combinedVotes, autosubscribers, winners]
+  );
+
+  const memoizedProgress = useMemo(
+    () => ({
+      nominationsProgress,
+      votesProgress,
+      autosubscribersProgress,
+      winnersProgress,
+    }),
+    [
+      nominationsProgress,
+      votesProgress,
+      autosubscribersProgress,
+      winnersProgress,
+    ]
+  );
+
   return {
-    nominations,
-    combinedVotes,
-    autosubscribers,
-    winners,
-    nominationsProgress,
-    votesProgress,
-    autosubscribersProgress,
-    winnersProgress,
+    ...memoizedData,
+    ...memoizedProgress,
     error,
     isLoading,
-    refreshData: (options: FetchOptions = { forceRefreshAll: true }) =>
-      fetchData(options),
+    refreshData,
     invalidateCache,
     invalidateAllCache,
-    debouncedRefreshData,
-    fetchMoreData,
-    page,
-    hasMore,
+    lastFetchTime,
   };
 };

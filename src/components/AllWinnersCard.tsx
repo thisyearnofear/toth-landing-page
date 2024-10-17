@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { BentoCard } from "@/components/magicui/bento-grid";
-import { StarIcon } from "@radix-ui/react-icons";
+import { StarIcon, ReloadIcon } from "@radix-ui/react-icons";
 import Marquee from "@/components/magicui/marquee";
 import AllWinnersModal from "./AllWinnersModal";
 import AnimatedCircularProgressBar from "@/components/magicui/animated-circular-progress-bar";
 import WinnerListCard from "@/components/WinnerListCard";
 import { Winner } from "../types";
+import { Button } from "@/components/ui/button";
 
 interface AllWinnersCardProps {
   winners: Winner[];
@@ -13,9 +14,10 @@ interface AllWinnersCardProps {
   onRefresh: () => void;
 }
 
-const AllWinnersCard: React.FC<AllWinnersCardProps> = React.memo(
+const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
   ({ winners, progress, onRefresh }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
       console.log("Winners updated:", winners);
@@ -34,10 +36,14 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = React.memo(
       URL.revokeObjectURL(url);
     };
 
+    const handleRefresh = useCallback(() => {
+      onRefresh();
+    }, [onRefresh]);
+
     return (
       <BentoCard
         name="Winners"
-        className="col-span-2"
+        className=""
         background={
           <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600" />
         }
@@ -47,7 +53,22 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = React.memo(
         cta="View All Winners"
         onClick={() => setIsModalOpen(true)}
       >
-        {progress < 100 ? (
+        <div className="flex justify-end mb-2">
+          <Button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            size="sm"
+            variant="outline"
+          >
+            {isRefreshing ? (
+              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <ReloadIcon className="mr-2 h-4 w-4" />
+            )}
+            Refresh Winners
+          </Button>
+        </div>
+        {progress < 100 || isRefreshing ? (
           <div className="flex justify-center items-center h-40">
             <AnimatedCircularProgressBar
               max={100}
@@ -66,7 +87,7 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = React.memo(
           </Marquee>
         ) : (
           <div className="flex justify-center items-center h-40 text-white">
-            No winners available.
+            No winners available. Try refreshing the data.
           </div>
         )}
         <AllWinnersModal

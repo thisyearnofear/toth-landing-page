@@ -27,7 +27,7 @@ const AutosubscribersCard = ({ subscribers, progress }) => {
   return (
     <BentoCard
       name="Autosubscribers"
-      className="col-span-1"
+      className=""
       background={
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-yellow-600" />
       }

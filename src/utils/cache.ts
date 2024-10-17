@@ -6,10 +6,10 @@ import { ProfileResponse } from "../types/profile";
 const DEFAULT_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const CACHE_DURATIONS = {
-  nominations: 100 * 60 * 1000, // 100 minutes
-  votes: 50 * 60 * 1000, // 50 minutes
-  autosubscribers: 1500 * 60 * 1000, // 1500 minutes
-  winners: 5 * 60 * 1000, // 5 minutes
+  nominations: 4 * 60 * 60 * 1000, // 4 hours
+  votes: 4 * 60 * 60 * 1000, // 4 hours
+  autosubscribers: 24 * 60 * 60 * 1000, // 24 hours
+  winners: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 interface CacheItem<T> {
@@ -52,6 +52,18 @@ class Cache {
   }
 
   set<T>(key: string, data: T): void {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Filter data if it's an array and has a 'createdAt' or 'date' property
+    // but exclude 'winners' from this filtering
+    if (Array.isArray(data) && key !== "winners") {
+      data = data.filter((item: any) => {
+        const itemDate = new Date(item.createdAt || item.date);
+        return itemDate >= thirtyDaysAgo;
+      }) as T;
+    }
+
     this.setItem(key, data);
   }
 

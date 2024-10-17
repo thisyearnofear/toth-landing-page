@@ -14,7 +14,7 @@ const BentoGrid = ({
   return (
     <div
       className={cn(
-        // Responsive grid classes
+        // Updated responsive grid classes
         "grid w-full auto-rows-[22rem] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
         className
       )}
@@ -33,7 +33,7 @@ const BentoCard = ({
   href,
   cta,
   children,
-  onClick, // Add onClick here
+  onClick,
 }: {
   name: string;
   className: string;

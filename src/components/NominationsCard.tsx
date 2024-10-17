@@ -38,7 +38,7 @@ const NominationsCard = ({
   return (
     <BentoCard
       name="Nominations"
-      className="col-span-2"
+      className=""
       background={
         <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-purple-600" />
       }
