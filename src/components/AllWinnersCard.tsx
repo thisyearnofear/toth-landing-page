@@ -101,4 +101,6 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
   }
 );
 
+AllWinnersCard.displayName = "AllWinnersCard";
+
 export default AllWinnersCard;

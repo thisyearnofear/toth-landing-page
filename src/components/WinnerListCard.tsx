@@ -30,4 +30,6 @@ const WinnerListCard: React.FC<Winner> = memo(
   }
 );
 
+WinnerListCard.displayName = "WinnerListCard";
+
 export default WinnerListCard;

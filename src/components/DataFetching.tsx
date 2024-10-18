@@ -103,4 +103,6 @@ const DataFetching: React.FC = React.memo(() => {
   );
 });
 
+DataFetching.displayName = "DataFetching";
+
 export default DataFetching;
