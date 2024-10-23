@@ -11,7 +11,6 @@ export interface Nomination {
 }
 
 export interface Vote {
-  vote: any;
   voter: string;
   nominationId: string;
   round: number;

@@ -20,6 +20,9 @@ import {
 } from "../utils/cache";
 import { debounce } from "../utils/debounce";
 
+// Add this type definition at the top of the file, after the imports
+type FetchFunction<T> = () => Promise<T>;
+
 interface FetchOptions {
   forceRefreshAll?: boolean;
   forceRefreshNominations?: boolean;
@@ -89,7 +92,7 @@ export const useDataFetching = () => {
 
       const fetchAndCacheData = async <T>(
         key: string,
-        fetchFunc: () => Promise<T>,
+        fetchFunc: FetchFunction<T>,
         getCachedData: () => T | null,
         setCachedData: (data: T) => void,
         setProgress: (progress: number) => void,
@@ -106,11 +109,18 @@ export const useDataFetching = () => {
 
         setProgress(10);
         console.log(`Fetching fresh data for ${key}`);
-        const data = await fetchFunc();
-        setProgress(100);
-        setCachedData(data);
-        console.log(`Fetched and cached data for ${key}:`, data);
-        return data;
+        try {
+          const data = await fetchFunc();
+          setProgress(100);
+          setCachedData(data);
+          console.log(`Fetched and cached data for ${key}:`, data);
+          return data;
+        } catch (error) {
+          console.error(`Error fetching data for ${key}:`, error);
+          setProgress(0);
+          // If there's an error, return the cached data if available, otherwise return an empty array
+          return cachedData || ([] as unknown as T);
+        }
       };
 
       try {
@@ -243,10 +253,20 @@ export const useDataFetching = () => {
               "winners",
               async () => {
                 const response = await fetch("/api/fetchWinners");
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
+                if (!Array.isArray(data)) {
+                  console.error("Unexpected data format for winners:", data);
+                  return [];
+                }
                 const validWinners = data.filter(
                   (winner: any) =>
-                    winner.winner && winner.winner.fid && winner.winner.date
+                    winner &&
+                    winner.winner &&
+                    winner.winner.fid &&
+                    winner.winner.date
                 );
 
                 const fids = validWinners
@@ -295,7 +315,7 @@ export const useDataFetching = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
         setError(
-          "An error occurred while fetching data. Please try again later."
+          "An error occurred while fetching some data. Some information may be outdated or missing."
         );
       } finally {
         setIsLoading(false);
