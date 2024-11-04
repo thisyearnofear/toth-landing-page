@@ -43,14 +43,21 @@ const DataFetching: React.FC = React.memo(() => {
       <NominationsCard
         nominations={nominations}
         progress={nominationsProgress}
+        refreshData={refreshData}
       />
     ),
-    [nominations, nominationsProgress]
+    [nominations, nominationsProgress, refreshData]
   );
 
   const memoizedVotesCard = useMemo(
-    () => <VotesCard votes={combinedVotes} progress={votesProgress} />,
-    [combinedVotes, votesProgress]
+    () => (
+      <VotesCard
+        votes={combinedVotes}
+        progress={votesProgress}
+        refreshData={refreshData}
+      />
+    ),
+    [combinedVotes, votesProgress, refreshData]
   );
 
   const memoizedAutosubscribersCard = useMemo(
@@ -58,9 +65,10 @@ const DataFetching: React.FC = React.memo(() => {
       <AutosubscribersCard
         subscribers={autosubscribers}
         progress={autosubscribersProgress}
+        refreshData={refreshData}
       />
     ),
-    [autosubscribers, autosubscribersProgress]
+    [autosubscribers, autosubscribersProgress, refreshData]
   );
 
   const memoizedAllWinnersCard = useMemo(
@@ -69,11 +77,11 @@ const DataFetching: React.FC = React.memo(() => {
         <AllWinnersCard
           winners={winners}
           progress={winnersProgress}
-          onRefresh={handleWinnersRefresh}
+          refreshData={refreshData}
         />
       </Suspense>
     ),
-    [winners, winnersProgress, handleWinnersRefresh]
+    [winners, winnersProgress, refreshData]
   );
 
   if (error) {

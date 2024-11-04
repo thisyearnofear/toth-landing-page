@@ -84,232 +84,232 @@ export const useDataFetching = () => {
     return data.filter((item) => new Date(item[dateField]) >= thirtyDaysAgo);
   }, []);
 
+  const fetchAndCacheData = async <T>(
+    key: string,
+    fetchFunc: FetchFunction<T>,
+    getCachedData: () => T | null,
+    setCachedData: (data: T) => void,
+    setProgress: (progress: number) => void,
+    forceRefresh: boolean
+  ): Promise<T> => {
+    const shouldFetch = forceRefresh || isInitialLoad;
+    const cachedData = getCachedData();
+
+    if (cachedData && !shouldFetch) {
+      console.log(`Using cached data for ${key}`);
+      return cachedData;
+    }
+
+    setProgress(10);
+    console.log(`Fetching fresh data for ${key}`);
+    try {
+      const data = await fetchFunc();
+      setProgress(100);
+      setCachedData(data);
+      console.log(`Fetched and cached data for ${key}:`, data);
+      return data;
+    } catch (error) {
+      console.error(`Error fetching data for ${key}:`, error);
+      setProgress(0);
+      // If there's an error, return the cached data if available, otherwise return an empty array
+      return cachedData || ([] as unknown as T);
+    }
+  };
+
   const fetchData = useCallback(
     async (options: FetchOptions = {}) => {
       console.log("Fetching data with options:", options);
       setIsLoading(true);
       setError(null);
 
-      const fetchAndCacheData = async <T>(
-        key: string,
-        fetchFunc: FetchFunction<T>,
-        getCachedData: () => T | null,
-        setCachedData: (data: T) => void,
-        setProgress: (progress: number) => void,
-        forceRefresh: boolean
-      ) => {
-        const shouldFetch =
-          options.forceRefreshAll || forceRefresh || isInitialLoad;
-        const cachedData = getCachedData();
-
-        if (cachedData && !shouldFetch) {
-          console.log(`Using cached data for ${key}`);
-          return cachedData;
-        }
-
-        setProgress(10);
-        console.log(`Fetching fresh data for ${key}`);
-        try {
-          const data = await fetchFunc();
-          setProgress(100);
-          setCachedData(data);
-          console.log(`Fetched and cached data for ${key}:`, data);
-          return data;
-        } catch (error) {
-          console.error(`Error fetching data for ${key}:`, error);
-          setProgress(0);
-          // If there's an error, return the cached data if available, otherwise return an empty array
-          return cachedData || ([] as unknown as T);
-        }
-      };
-
       try {
-        const [nominationsData, votesData, autosubscribersData, winnersData] =
-          await Promise.all([
-            fetchAndCacheData<Nomination[]>(
-              "nominations",
-              async () => {
-                const response = await fetch("/api/fetchNominations");
-                const data = await response.json();
-                const allNominations = data
-                  .flatMap((round: any) =>
-                    round.nominations.map((nom: any) => ({
-                      ...nom,
-                      roundNumber: round.roundNumber,
-                    }))
-                  )
-                  .sort(
-                    (a: any, b: any) =>
-                      new Date(b.createdAt).getTime() -
-                      new Date(a.createdAt).getTime()
-                  );
-
-                const filteredNominations = filterLast30Days(
-                  allNominations,
-                  "createdAt"
-                );
-                const recentNominations = filteredNominations.slice(0, 20);
-
-                const fids = recentNominations.map((nom: any) => nom.fid);
-                const userInfoMap = await fetchBulkUserInfo(fids);
-
-                return recentNominations
-                  .map((nom: any) => {
-                    const userData = userInfoMap[nom.fid];
-                    return {
-                      id: nom.id,
-                      nominator: userData?.username || "Unknown User",
-                      nominee: nom.username,
-                      round: nom.roundNumber,
-                      date: new Date(nom.createdAt).toLocaleDateString(),
-                      nominatorPfp: userData?.pfp_url,
-                      nominatorFid: nom.fid,
-                    };
-                  })
-                  .filter(
-                    (nom): nom is Nomination => nom.nominator !== "Unknown User"
-                  );
-              },
-              getCachedNominations,
-              setCachedNominations,
-              setNominationsProgress,
-              options.forceRefreshNominations || false
-            ),
-            fetchAndCacheData<Vote[]>(
-              "votes",
-              async () => {
-                const response = await fetch("/api/fetchVotes");
-                const data = await response.json();
-                const allVotes = data
-                  .flatMap((round: any) =>
-                    round.votes.map((vote: any) => ({
-                      ...vote,
-                      roundNumber: round.roundNumber,
-                    }))
-                  )
-                  .sort(
-                    (a: any, b: any) =>
-                      new Date(b.createdAt).getTime() -
-                      new Date(a.createdAt).getTime()
-                  );
-
-                const filteredVotes = filterLast30Days(allVotes, "createdAt");
-
-                const fids = filteredVotes.map((vote: any) => vote.fid);
-                const userInfoMap = await fetchBulkUserInfo(fids);
-
-                return filteredVotes
-                  .map((vote: any) => {
-                    const userData = userInfoMap[vote.fid];
-                    return {
-                      voter: userData?.username || "Unknown User",
-                      nominationId: vote.nominationId,
-                      round: vote.roundNumber,
-                      date: new Date(vote.createdAt).toLocaleDateString(),
-                      voterPfp: userData?.pfp_url,
-                    };
-                  })
-                  .filter(
-                    (vote): vote is Vote => vote.voter !== "Unknown User"
-                  );
-              },
-              getCachedVotes,
-              setCachedVotes,
-              setVotesProgress,
-              options.forceRefreshVotes || false
-            ),
-            fetchAndCacheData<Autosubscriber[]>(
-              "autosubscribers",
-              async () => {
-                const response = await fetch("/api/fetchAutosubscribers");
-                const data = await response.json();
-                const validSubscribers = data.filter(
-                  (sub: any) =>
-                    sub.tips?.allowance && parseInt(sub.tips.allowance) > 0
-                );
-                const fids = validSubscribers.map((sub: any) => sub.fid);
-                const userInfoMap = await fetchBulkUserInfo(fids);
-
-                return validSubscribers
-                  .map((sub: any) => {
-                    const userData = userInfoMap[sub.fid];
-                    return {
-                      name: userData?.username || "Unknown User",
-                      allowance: sub.tips.allowance,
-                      icon: "💎",
-                      color: "#FFD700",
-                    };
-                  })
-                  .filter(
-                    (sub): sub is Autosubscriber => sub.name !== "Unknown User"
-                  );
-              },
-              getCachedAutosubscribers,
-              setCachedAutosubscribers,
-              setAutosubscribersProgress,
-              options.forceRefreshAutosubscribers || false
-            ),
-            fetchAndCacheData<Winner[]>(
-              "winners",
-              async () => {
-                const response = await fetch("/api/fetchWinners");
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                if (!Array.isArray(data)) {
-                  console.error("Unexpected data format for winners:", data);
-                  return [];
-                }
-                const validWinners = data.filter(
-                  (winner: any) =>
-                    winner &&
-                    winner.winner &&
-                    winner.winner.fid &&
-                    winner.winner.date
+        // Fetch each data type independently
+        if (options.forceRefreshAll || options.forceRefreshNominations) {
+          const nominationsData = await fetchAndCacheData<Nomination[]>(
+            "nominations",
+            async () => {
+              const response = await fetch("/api/fetchNominations");
+              const data = await response.json();
+              const allNominations = data
+                .flatMap((round: any) =>
+                  round.nominations.map((nom: any) => ({
+                    ...nom,
+                    roundNumber: round.roundNumber,
+                  }))
+                )
+                .sort(
+                  (a: any, b: any) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
                 );
 
-                const fids = validWinners
-                  .map((winner: any) => winner.winner.fid)
-                  .filter(Boolean);
-                const userInfoMap = await fetchBulkUserInfo(fids);
+              const filteredNominations = filterLast30Days(
+                allNominations,
+                "createdAt"
+              );
+              const recentNominations = filteredNominations.slice(0, 20);
 
-                return validWinners
-                  .map((winner: any) => {
-                    const userData = userInfoMap[winner.winner.fid];
-                    return {
-                      roundNumber: winner.roundNumber,
-                      date: new Date(winner.winner.date).toLocaleDateString(),
-                      username:
-                        userData?.username || `User ${winner.winner.fid}`,
-                      fid: winner.winner.fid,
-                      text: winner.winner.text || "No text available",
-                    };
-                  })
-                  .filter(
-                    (winner: Winner) =>
-                      winner.username !== "undefined" &&
-                      winner.date !== "Invalid Date"
-                  )
-                  .reverse();
-              },
-              getCachedWinners,
-              setCachedWinners,
-              setWinnersProgress,
-              options.forceRefreshWinners || false
-            ),
-          ]);
+              const fids = recentNominations.map((nom: any) => nom.fid);
+              const userInfoMap = await fetchBulkUserInfo(fids);
 
-        setNominations(nominationsData);
-        setVotes(votesData);
-        setAutosubscribers(autosubscribersData);
-        setWinners(winnersData);
+              return recentNominations
+                .map((nom: any) => {
+                  const userData = userInfoMap[nom.fid];
+                  return {
+                    id: nom.id,
+                    nominator: userData?.username || "Unknown User",
+                    nominee: nom.username,
+                    round: nom.roundNumber,
+                    date: new Date(nom.createdAt).toLocaleDateString(),
+                    nominatorPfp: userData?.pfp_url,
+                    nominatorFid: nom.fid,
+                  };
+                })
+                .filter(
+                  (nom): nom is Nomination => nom.nominator !== "Unknown User"
+                );
+            },
+            getCachedNominations,
+            setCachedNominations,
+            setNominationsProgress,
+            options.forceRefreshNominations || false
+          );
+          setNominations(nominationsData);
+        }
 
-        const combined = combineVotesWithNominations(
-          votesData,
-          nominationsData
-        );
-        setCombinedVotes(combined);
+        if (options.forceRefreshAll || options.forceRefreshVotes) {
+          const votesData = await fetchAndCacheData<Vote[]>(
+            "votes",
+            async () => {
+              const response = await fetch("/api/fetchVotes");
+              const data = await response.json();
+              const allVotes = data
+                .flatMap((round: any) =>
+                  round.votes.map((vote: any) => ({
+                    ...vote,
+                    roundNumber: round.roundNumber,
+                  }))
+                )
+                .sort(
+                  (a: any, b: any) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                );
+
+              const filteredVotes = filterLast30Days(allVotes, "createdAt");
+
+              const fids = filteredVotes.map((vote: any) => vote.fid);
+              const userInfoMap = await fetchBulkUserInfo(fids);
+
+              return filteredVotes
+                .map((vote: any) => {
+                  const userData = userInfoMap[vote.fid];
+                  return {
+                    voter: userData?.username || "Unknown User",
+                    nominationId: vote.nominationId,
+                    round: vote.roundNumber,
+                    date: new Date(vote.createdAt).toLocaleDateString(),
+                    voterPfp: userData?.pfp_url,
+                  };
+                })
+                .filter((vote): vote is Vote => vote.voter !== "Unknown User");
+            },
+            getCachedVotes,
+            setCachedVotes,
+            setVotesProgress,
+            options.forceRefreshVotes || false
+          );
+          setVotes(votesData);
+          const combined = combineVotesWithNominations(votesData, nominations);
+          setCombinedVotes(combined);
+        }
+
+        if (options.forceRefreshAll || options.forceRefreshAutosubscribers) {
+          const autosubscribersData = await fetchAndCacheData<Autosubscriber[]>(
+            "autosubscribers",
+            async () => {
+              const response = await fetch("/api/fetchAutosubscribers");
+              const data = await response.json();
+              const validSubscribers = data.filter(
+                (sub: any) =>
+                  sub.tips?.allowance && parseInt(sub.tips.allowance) > 0
+              );
+              const fids = validSubscribers.map((sub: any) => sub.fid);
+              const userInfoMap = await fetchBulkUserInfo(fids);
+
+              return validSubscribers
+                .map((sub: any) => {
+                  const userData = userInfoMap[sub.fid];
+                  return {
+                    name: userData?.username || "Unknown User",
+                    allowance: sub.tips.allowance,
+                    icon: "💎",
+                    color: "#FFD700",
+                  };
+                })
+                .filter(
+                  (sub): sub is Autosubscriber => sub.name !== "Unknown User"
+                );
+            },
+            getCachedAutosubscribers,
+            setCachedAutosubscribers,
+            setAutosubscribersProgress,
+            options.forceRefreshAutosubscribers || false
+          );
+          setAutosubscribers(autosubscribersData);
+        }
+
+        if (options.forceRefreshAll || options.forceRefreshWinners) {
+          const winnersData = await fetchAndCacheData<Winner[]>(
+            "winners",
+            async () => {
+              const response = await fetch("/api/fetchWinners");
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              const data = await response.json();
+              if (!Array.isArray(data)) {
+                console.error("Unexpected data format for winners:", data);
+                return [];
+              }
+              const validWinners = data.filter(
+                (winner: any) =>
+                  winner &&
+                  winner.winner &&
+                  winner.winner.fid &&
+                  winner.winner.date
+              );
+
+              const fids = validWinners
+                .map((winner: any) => winner.winner.fid)
+                .filter(Boolean);
+              const userInfoMap = await fetchBulkUserInfo(fids);
+
+              return validWinners
+                .map((winner: any) => {
+                  const userData = userInfoMap[winner.winner.fid];
+                  return {
+                    roundNumber: winner.roundNumber,
+                    date: new Date(winner.winner.date).toLocaleDateString(),
+                    username: userData?.username || `User ${winner.winner.fid}`,
+                    fid: winner.winner.fid,
+                    text: winner.winner.text || "No text available",
+                  };
+                })
+                .filter(
+                  (winner: Winner) =>
+                    winner.username !== "undefined" &&
+                    winner.date !== "Invalid Date"
+                )
+                .reverse();
+            },
+            getCachedWinners,
+            setCachedWinners,
+            setWinnersProgress,
+            options.forceRefreshWinners || false
+          );
+          setWinners(winnersData);
+        }
 
         setLastFetchTime(new Date());
       } catch (error) {
@@ -322,7 +322,7 @@ export const useDataFetching = () => {
         setIsInitialLoad(false);
       }
     },
-    [combineVotesWithNominations, isInitialLoad, filterLast30Days]
+    [combineVotesWithNominations, isInitialLoad, nominations]
   );
 
   const debouncedFetchData = useMemo(
