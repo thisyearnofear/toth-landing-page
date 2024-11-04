@@ -33,6 +33,7 @@
     "react-loading-skeleton": "^3.5.0",
     "react-window": "^1.8.10",
     "recharts": "^2.12.7",
+    "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

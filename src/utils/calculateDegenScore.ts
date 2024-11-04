@@ -1,32 +1,63 @@
-// src/utils/calculateDegenScore.ts
+import { MemeToken } from "../types";
 
-import { Nomination } from "../types";
-import { mockScoreData } from "@/data/mockData";
-
-export const calculateDegenScore = (stats: {
-  nominations: Nomination[];
-}): {
+export interface DegenScoreResult {
   total: number;
-  kindness: number;
-  recognition: number;
-  governance: number;
-  value: number;
-} => {
-  const last25Days = 25 * 24 * 60 * 60 * 1000; // 25 days in milliseconds
-  const now = Date.now();
+  breakdown: { [chain: string]: number };
+  details: {
+    totalTokens: number;
+    chainBreakdown: {
+      [chain: string]: {
+        tokens: number;
+        score: number;
+        tokenList: Array<{ symbol: string; value: string }>;
+      };
+    };
+  };
+}
 
-  const recentNominations = stats.nominations.filter(
-    (nom) => now - new Date(nom.date).getTime() < last25Days
-  ).length;
+export const calculateDegenScore = (tokens: MemeToken[]): DegenScoreResult => {
+  const chainScores: { [chain: string]: number } = {};
+  const chainDetails: {
+    [chain: string]: {
+      tokens: number;
+      score: number;
+      tokenList: Array<{ symbol: string; value: string }>;
+    };
+  } = {};
 
-  const kindness = Math.min(recentNominations, 25);
+  const chains = ["eth", "base", "zksync", "scroll", "linea"];
 
-  // Use mock data for other scores
-  const recognition = mockScoreData.recognition[0].value;
-  const governance = mockScoreData.governance[0].value;
-  const value = mockScoreData.value[0].value;
+  // Each chain can contribute max 20 points to the total score
+  const MAX_CHAIN_SCORE = 20;
 
-  const total = kindness + recognition + governance + value;
+  chains.forEach((chain) => {
+    const chainTokens = tokens.filter((token) => token.chain === chain);
+    // Calculate score based on number of tokens, max 20 per chain
+    const score = Math.min(chainTokens.length * 5, MAX_CHAIN_SCORE);
 
-  return { total, kindness, recognition, governance, value };
+    chainScores[chain] = score;
+    chainDetails[chain] = {
+      tokens: chainTokens.length,
+      score,
+      tokenList: chainTokens.map((token) => ({
+        symbol: token.symbol,
+        value: token.balance || "0",
+      })),
+    };
+  });
+
+  // Total score is sum of all chain scores (max 100)
+  const total = Object.values(chainScores).reduce(
+    (sum, score) => sum + score,
+    0
+  );
+
+  return {
+    total,
+    breakdown: chainScores,
+    details: {
+      totalTokens: tokens.length,
+      chainBreakdown: chainDetails,
+    },
+  };
 };

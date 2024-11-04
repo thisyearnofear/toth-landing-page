@@ -6,7 +6,6 @@ import VotesCard from "@/components/VotesCard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AutosubscribersCard from "@/components/AutosubscribersCard";
 import { Button } from "@/components/ui/button";
-import "@/components/AllWinnersCard";
 
 const AllWinnersCard = lazy(() => import("@/components/AllWinnersCard"));
 
@@ -30,11 +29,6 @@ const DataFetching: React.FC = React.memo(() => {
       event.preventDefault();
       refreshData({ forceRefreshAll: true });
     },
-    [refreshData]
-  );
-
-  const handleWinnersRefresh = useCallback(
-    () => refreshData({ forceRefreshWinners: true }),
     [refreshData]
   );
 
@@ -92,8 +86,6 @@ const DataFetching: React.FC = React.memo(() => {
     <ErrorBoundary
       fallback={<div>Something went wrong. Please try again later.</div>}
     >
-      <div className="max-w-6xl mx-auto mb-4"></div>
-
       <BentoGrid className="max-w-6xl mx-auto mb-12">
         <div className="col-span-1 sm:col-span-2 lg:col-span-2">
           {memoizedNominationsCard}
@@ -104,8 +96,12 @@ const DataFetching: React.FC = React.memo(() => {
           {memoizedAllWinnersCard}
         </div>
       </BentoGrid>
-      <Button onClick={handleRefreshClick} disabled={isLoading}>
-        {isLoading ? "Refreshing..." : "Refresh Data"}
+      <Button
+        onClick={handleRefreshClick}
+        disabled={isLoading}
+        className="mx-auto block mb-12"
+      >
+        {isLoading ? "Refreshing..." : "Refresh All Data"}
       </Button>
     </ErrorBoundary>
   );

@@ -19,18 +19,18 @@ export interface ProfileLinks {
 export type Platform = "ens" | "farcaster" | "lens";
 
 export interface Profile {
-  address: string;
-  identity: string;
-  platform: Platform;
-  displayName: string;
-  avatar: string | null;
-  description: string | null;
-  email: string | null;
-  location: string | null;
-  header: string | null;
-  contenthash: string | null;
-  links: ProfileLinks;
-  social: SocialStats;
+  address: string; // Wallet address or ENS
+  identity: string; // ENS name or other identifier
+  platform: Platform; // Platform type (ENS, Farcaster, Lens)
+  displayName: string; // User's display name
+  avatar: string | null; // User's avatar URL
+  description: string | null; // User's description
+  email: string | null; // User's email
+  location: string | null; // User's location
+  header: string | null; // User's header image URL
+  contenthash: string | null; // Content hash for decentralized storage
+  links: ProfileLinks; // Links to social profiles or websites
+  social: SocialStats; // Social statistics
 }
 
 export type ProfileResponse = Profile[];

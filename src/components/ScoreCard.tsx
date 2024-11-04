@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
-import { mockScoreData } from "@/data/mockData";
+import { formatLargeNumber } from "../utils/formatNumbers";
 
-const ScoreCard = ({ icon, label, score, description }) => {
+interface TokenDetail {
+  symbol: string;
+  value: string;
+}
+
+interface ScoreCardProps {
+  icon: React.ReactNode;
+  label: string;
+  score: number;
+  description: string;
+  tokenList: TokenDetail[];
+}
+
+const ScoreCard: React.FC<ScoreCardProps> = ({
+  icon,
+  label,
+  score,
+  description,
+  tokenList,
+}) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [showModal, setShowModal] = useState(false);
 
@@ -24,12 +34,13 @@ const ScoreCard = ({ icon, label, score, description }) => {
   }, [score]);
 
   const renderModalContent = () => {
-    const data = mockScoreData[label.toLowerCase()];
-
     return (
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-purple-800">{label}</h3>
+          <div className="flex items-center gap-2">
+            {icon}
+            <h3 className="text-2xl font-bold text-purple-800">{label}</h3>
+          </div>
           <button
             onClick={() => setShowModal(false)}
             className="text-gray-500 hover:text-gray-700"
@@ -38,56 +49,19 @@ const ScoreCard = ({ icon, label, score, description }) => {
           </button>
         </div>
         <p className="text-sm text-gray-600 mb-6">{description}</p>
-        <div className="h-64 w-full mb-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="date" stroke="#8884d8" />
-              <YAxis stroke="#8884d8" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#f3e8ff",
-                  border: "none",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "#6b21a8" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#8b5cf6"
-                strokeWidth={3}
-                dot={{ fill: "#8b5cf6", r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {data.map((item, index) => (
-            <div key={index} className="bg-purple-50 p-3 rounded">
-              <p className="text-sm font-semibold text-purple-800">
-                {item.date}
-              </p>
-              {label === "Kindness" && (
-                <p className="text-xs text-purple-600">
-                  Nominated: {item.nominated.join(", ")}
-                </p>
-              )}
-              {label === "Recognition" && (
-                <p className="text-xs text-purple-600">
-                  Nominated by: {item.nominatedBy.join(", ")}
-                </p>
-              )}
-              {label === "Governance" && (
-                <p className="text-xs text-purple-600">
-                  Votes cast: {item.votesCount}
-                </p>
-              )}
-              {label === "Value" && (
-                <p className="text-xs text-purple-600">
-                  Votes received: {item.votesReceived}
-                </p>
-              )}
+
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {tokenList.map((token, index) => (
+            <div
+              key={index}
+              className="bg-purple-50 p-3 rounded flex justify-between items-center"
+            >
+              <span className="font-medium text-purple-800">
+                {token.symbol}
+              </span>
+              <span className="text-purple-600">
+                {formatLargeNumber(token.value)}
+              </span>
             </div>
           ))}
         </div>

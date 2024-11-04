@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useRef, useEffect } from "react";
 import { BentoCard } from "@/components/magicui/bento-grid";
 import { StarIcon } from "@radix-ui/react-icons";
 import Marquee from "@/components/magicui/marquee";
@@ -7,6 +7,7 @@ import AnimatedCircularProgressBar from "@/components/magicui/animated-circular-
 import WinnerListCard from "@/components/WinnerListCard";
 import { Winner } from "../types";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface AllWinnersCardProps {
   winners: Winner[];
@@ -19,12 +20,53 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasTimedOut, setHasTimedOut] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout>();
+
+    const startLoadingTimeout = useCallback(() => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setHasTimedOut(true);
+        setIsLoading(false);
+        setIsDataLoaded(false);
+        toast.error("Loading timed out. Please try again.");
+      }, 30000); // 30 seconds timeout
+    }, []);
+
+    const clearLoadingTimeout = useCallback(() => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      setHasTimedOut(false);
+    }, []);
+
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, []);
 
     const handleLoadData = async () => {
       setIsLoading(true);
-      await refreshData({ forceRefreshWinners: true });
-      setIsDataLoaded(true);
-      setIsLoading(false);
+      setHasTimedOut(false);
+      startLoadingTimeout();
+
+      try {
+        await refreshData({ forceRefreshWinners: true });
+        setIsDataLoaded(true);
+        clearLoadingTimeout();
+      } catch (error) {
+        console.error("Error loading winners:", error);
+        setIsDataLoaded(false);
+        setHasTimedOut(true);
+        toast.error("Failed to load winners. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     const handleDownload = () => {
@@ -41,9 +83,14 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
     };
 
     const renderContent = () => {
-      if (!isDataLoaded) {
+      if (hasTimedOut || (!isDataLoaded && !isLoading)) {
         return (
           <div className="flex flex-col h-40 justify-center items-center gap-4 text-white">
+            {hasTimedOut && (
+              <p className="text-red-400 mb-2">
+                Failed to load data. Please try again.
+              </p>
+            )}
             <p className="text-center px-4">
               The community nominated you. The community voted for you. Thanks
               for building/creating something awesome. You have entered the
@@ -63,7 +110,7 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
         );
       }
 
-      if (progress < 100) {
+      if (progress < 100 && !hasTimedOut) {
         return (
           <div className="flex justify-center items-center h-40">
             <AnimatedCircularProgressBar
@@ -99,7 +146,7 @@ const AllWinnersCard: React.FC<AllWinnersCardProps> = memo(
           <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600" />
         }
         Icon={StarIcon}
-        description=""
+        description="The Hat Stays On 🎩"
         href="#"
         cta="View All Winners"
         onClick={() => isDataLoaded && setIsModalOpen(true)}

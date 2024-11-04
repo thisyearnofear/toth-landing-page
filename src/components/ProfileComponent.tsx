@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from "react";
-import ScoreCard from "./ScoreCard";
+import ChainScoreCard from "./ChainScoreCard";
 import { Profile } from "@/types/profile";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
-import {
-  Heart,
-  Award,
-  Vote,
-  User,
-  ChevronDown,
-  ChevronUp,
-  X,
-  HardHat,
-  ChefHat,
-} from "lucide-react";
-import { mockScoreData } from "@/data/mockData";
+import { DegenScoreResult } from "@/types/index";
+
+import { Heart, ChevronDown, ChevronUp, HardHat, ChefHat } from "lucide-react";
+import { useMemecoins } from "@/hooks/useMemecoins";
+import { calculateDegenScore } from "@/utils/calculateDegenScore";
+import { chainIcons, chainColors } from "./ChainIcons";
 
 interface ProfileProps {
   profiles: Profile[];
@@ -32,6 +20,20 @@ const ProfileComponent: React.FC<ProfileProps> = ({ profiles }) => {
     return ensIndex !== -1 ? ensIndex : 0;
   });
   const [totalScore, setTotalScore] = useState(0);
+  const activeProfile = profiles[expandedIndex || 0];
+  const {
+    tokens,
+    isLoading: memecoinsLoading,
+    error,
+  } = useMemecoins(activeProfile.address);
+  const [degenScore, setDegenScore] = useState<DegenScoreResult>({
+    total: 0,
+    breakdown: {},
+    details: {
+      totalTokens: 0,
+      chainBreakdown: {},
+    },
+  });
 
   const toggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
@@ -70,6 +72,25 @@ const ProfileComponent: React.FC<ProfileProps> = ({ profiles }) => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (tokens.length > 0) {
+      const score = calculateDegenScore(tokens);
+      setDegenScore(score);
+    }
+  }, [tokens]);
+
+  const renderDegenScoreDetails = () => {
+    if (!degenScore.details) return null;
+
+    return (
+      <div className="text-center mt-4">
+        <p className="text-lg font-semibold text-purple-700">
+          Total Memecoins Found: {degenScore.details.totalTokens}
+        </p>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-gradient-to-br from-purple-200 to-purple-300 rounded-lg shadow-md p-4 mb-4 mt-4">
@@ -146,42 +167,36 @@ const ProfileComponent: React.FC<ProfileProps> = ({ profiles }) => {
       </div>
 
       <div className="text-center mb-4">
-        <h3 className="text-2xl font-bold text-purple-800">Degen Score</h3>
+        <h3 className="text-2xl font-bold text-purple-800">Degen Score/100</h3>
         <div className="flex items-center justify-center mt-2">
           <ChefHat className="w-8 h-8 text-purple-600 mr-2" />
           <div className="text-4xl font-bold text-purple-600 transition-all duration-1000 ease-out">
-            {totalScore}
+            {memecoinsLoading ? "Loading..." : degenScore.total}
           </div>
           <HardHat className="w-8 h-8 text-purple-600 ml-2" />
         </div>
       </div>
 
       <div className="flex justify-center space-x-4">
-        <ScoreCard
-          icon={<Heart className="w-6 h-6 text-purple-600" />}
-          label="Kindness"
-          score={20}
-          description="Recognizes how often you nominate others"
-        />
-        <ScoreCard
-          icon={<Award className="w-6 h-6 text-purple-600" />}
-          label="Recognition"
-          score={23}
-          description="Reflects how often you are nominated by others"
-        />
-        <ScoreCard
-          icon={<Vote className="w-6 h-6 text-purple-600" />}
-          label="Governance"
-          score={19}
-          description="Indicates your participation in voting"
-        />
-        <ScoreCard
-          icon={<User className="w-6 h-6 text-purple-600" />}
-          label="Value"
-          score={23}
-          description="Represents how often you receive votes"
-        />
+        {Object.entries(degenScore.details.chainBreakdown).map(
+          ([chain, data]) => (
+            <ChainScoreCard
+              key={chain}
+              chain={chain as keyof typeof chainIcons}
+              tokens={data.tokenList}
+              score={data.score}
+            />
+          )
+        )}
       </div>
+
+      {memecoinsLoading ? (
+        <div className="text-purple-600">Loading memecoin data...</div>
+      ) : error ? (
+        <div className="text-red-500">Error: {error}</div>
+      ) : (
+        renderDegenScoreDetails()
+      )}
     </div>
   );
 };
