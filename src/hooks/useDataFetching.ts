@@ -272,34 +272,18 @@ export const useDataFetching = () => {
                 console.error("Unexpected data format for winners:", data);
                 return [];
               }
-              const validWinners = data.filter(
-                (winner: any) =>
-                  winner &&
-                  winner.winner &&
-                  winner.winner.fid &&
-                  winner.winner.date
-              );
 
-              const fids = validWinners
-                .map((winner: any) => winner.winner.fid)
-                .filter(Boolean);
-              const userInfoMap = await fetchBulkUserInfo(fids);
-
-              return validWinners
-                .map((winner: any) => {
-                  const userData = userInfoMap[winner.winner.fid];
-                  return {
-                    roundNumber: winner.roundNumber,
-                    date: new Date(winner.winner.date).toLocaleDateString(),
-                    username: userData?.username || `User ${winner.winner.fid}`,
-                    fid: winner.winner.fid,
-                    text: winner.winner.text || "No text available",
-                  };
-                })
+              return data
+                .filter((item) => item && item.winner)
+                .map((item) => ({
+                  roundNumber: item.roundNumber,
+                  date: new Date(item.winner.date).toLocaleDateString(),
+                  username: item.winner.username || `User ${item.winner.fid}`,
+                  fid: item.winner.fid,
+                  text: item.winner.text || "No text available",
+                }))
                 .filter(
-                  (winner: Winner) =>
-                    winner.username !== "undefined" &&
-                    winner.date !== "Invalid Date"
+                  (winner) => winner.username && winner.date !== "Invalid Date"
                 )
                 .reverse();
             },
